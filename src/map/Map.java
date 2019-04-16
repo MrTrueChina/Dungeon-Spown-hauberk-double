@@ -1,5 +1,6 @@
 package map;
 
+import java.awt.Point;
 import java.awt.Rectangle;
 
 import quad.Quad;
@@ -19,8 +20,16 @@ public class Map extends Rectangle {
                 _quads[x][y] = new Quad(QuadType.FLOOR);
     }
 
+    public void setType(Point point, QuadType type) {
+        setType(point.x, point.y, type);
+    }
+
     public void setType(int x, int y, QuadType type) {
         _quads[x][y].setType(type);
+    }
+
+    public QuadType getType(Point point) {
+        return getType(point.x, point.y);
     }
 
     public QuadType getType(int x, int y) {

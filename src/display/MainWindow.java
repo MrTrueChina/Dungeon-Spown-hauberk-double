@@ -1,9 +1,9 @@
 package display;
 
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -53,16 +53,21 @@ public class MainWindow {
     private void displayDefaultMap() {
         MapSpownData spownData = new MapSpownData();
         
-        spownData.mapWidth = 550;
-        spownData.mapHeight = 550;
-        spownData.minRoomWidth = 3;
-        spownData.minRoomHeight = 3;
-        spownData.maxRoomWidth = 24;
-        spownData.maxRoomHeight = 24;
-        spownData.spownRoomTime = 100;
+        spownData.mapWidth = 64;
+        spownData.mapHeight = 64;
+        spownData.minRoomWidth = 4;
+        spownData.minRoomHeight = 4;
+        spownData.maxRoomWidth = 16;
+        spownData.maxRoomHeight = 16;
+        spownData.spownRoomTime = 80;
         
         Map map = new MapSpowner().spown(spownData);
-        BufferedImage mapImage = SaveMap.mapToImage(map);
-        _imageLabel.setIcon(new ImageIcon(mapImage));
+        Image scaledMazeImage;
+        if (map.getWidth() > map.getHeight())
+            scaledMazeImage = SaveMap.mapToImage(map).getScaledInstance(550, -1, Image.SCALE_FAST);
+        else
+            scaledMazeImage = SaveMap.mapToImage(map).getScaledInstance(-1, 550, Image.SCALE_FAST);
+
+        _imageLabel.setIcon(new ImageIcon(scaledMazeImage));
     }
 }

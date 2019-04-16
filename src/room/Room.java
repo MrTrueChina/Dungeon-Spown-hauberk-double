@@ -16,4 +16,13 @@ public class Room extends Rectangle {
         super(x, y, width, height);
         _quads = new Quad[width][height];
     }
+
+    /**
+     * 获取边缘增加后的Rectangle，用于判断与其他房间是否相交
+     * 
+     * @return
+     */
+    public Rectangle getExpandedRectangle() {
+        return new Rectangle(x - 1, y - 1, width + 2, height + 2); // Rectangle 的相交判断似乎不包括长宽方向的边缘，因此+2
+    }
 }

@@ -2,19 +2,93 @@ package room;
 
 import java.awt.Rectangle;
 
+import map.Map;
 import quad.Quad;
 
 @SuppressWarnings("serial")
 public class Room extends Rectangle {
-    private Quad[][] _quads; // 【潜在bug】：房间的地块可以和地图不一样，这样会导致同一个坐标有两个地块，进而导致难以寻找的bug
+    private Quad[][] _quads;
 
-    public Room(int width, int height) {
-        this(0, 0, width, height);
+    public Room(int width, int height, Map map) {
+        this(0, 0, width, height, map);
     }
 
-    public Room(int x, int y, int width, int height) {
+    public Room(int x, int y, int width, int height, Map map) {
         super(x, y, width, height);
+        setupQuads(map);
+    }
+
+    private void setupQuads(Map map) {
         _quads = new Quad[width][height];
+
+        for (int yOffset = 0; yOffset < height; yOffset++)
+            for (int xOffset = 0; xOffset < width; xOffset++)
+                _quads[xOffset][yOffset] = map.getQuad(x + xOffset, y + yOffset);
+    }
+
+    public Quad[][] getQuads() {
+        return _quads;
+    }
+
+    /**
+     * 以一维数组形式返回所有地块
+     * 
+     * @return
+     */
+    public Quad[] getQuadArray() {
+        Quad[] quadArray = new Quad[width * height];
+
+        for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+                quadArray[y * width + x] = _quads[x][y];
+
+        return quadArray;
+    }
+
+    /**
+     * 获取顶部（y坐标最大）一行地块
+     * 
+     * @return
+     */
+    public Quad[] getTopQuads() {
+        Quad[] quads = new Quad[width];
+
+        for (int i = 0; i < width; i++)
+            quads[i] = _quads[i][_quads[0].length - 1];
+
+        return quads;
+    }
+
+    /**
+     * 获取底部（y坐标最小）一行地块
+     * 
+     * @return
+     */
+    public Quad[] getBottomQuads() {
+        Quad[] quads = new Quad[width];
+
+        for (int i = 0; i < width; i++)
+            quads[i] = _quads[i][0];
+
+        return quads;
+    }
+
+    /**
+     * 获取左边一行地块
+     * 
+     * @return
+     */
+    public Quad[] getLeftQuads() {
+        return _quads[0];
+    }
+
+    /**
+     * 获取右边一行地块
+     * 
+     * @return
+     */
+    public Quad[] getRightQuads() {
+        return _quads[_quads.length - 1];
     }
 
     /**

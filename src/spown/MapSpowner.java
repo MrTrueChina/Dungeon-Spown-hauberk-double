@@ -24,6 +24,8 @@ public class MapSpowner {
         System.out.println("生成了 " + _rooms.size() + " 个房间");
         
         new MazeSpowner().fillMaze(_map);
+        
+        new MapConnector().ConnectRoomsAndMaze(_map, _rooms, _spownData);
 
         return _map;
     }

@@ -12,6 +12,13 @@ public class RoomsSpowner {
     Map _map;
     ArrayList<Room> _rooms = new ArrayList<Room>();
 
+    /**
+     * 在地图中生成房间
+     * 
+     * @param map
+     * @param spownData
+     * @return
+     */
     public ArrayList<Room> spownRooms(Map map, MapSpownData spownData) {
         setupSpowner(map, spownData);
 
@@ -32,7 +39,7 @@ public class RoomsSpowner {
             int roomX = Random.Range(1, _spownData.mapWidth - roomWidth - 1); // 留出地图左右边框
             int roomY = Random.Range(1, _spownData.mapHeight - roomHeight - 1);
 
-            Room newRoom = new Room(roomX, roomY, roomWidth, roomHeight);
+            Room newRoom = new Room(roomX, roomY, roomWidth, roomHeight, _map);
 
             if (newRoomCanPut(newRoom))
                 putRoom(newRoom);

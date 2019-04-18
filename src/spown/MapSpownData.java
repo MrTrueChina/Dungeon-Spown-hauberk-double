@@ -8,4 +8,5 @@ public class MapSpownData {
     public int maxRoomWidth = 12;
     public int maxRoomHeight = 12;
     public int spownRoomTime = 40;
+    public int[] roomDoorsProbability = { 2, 3 };
 }

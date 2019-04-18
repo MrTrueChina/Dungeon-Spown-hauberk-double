@@ -7,12 +7,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 import map.Map;
+import maze.Maze;
 import quad.QuadType;
 
 public class MazeSpowner {
     private LinkedList<Point> _readyNodes; // 开表，用于存储准备雕刻的节点
     private ArrayList<Point> _carvedNodes; // 闭表，用于存储雕刻完毕的节点
     private Map _map;
+    private ArrayList<Maze> _mazes;
 
     /**
      * 在传入的地图上填充迷宫
@@ -20,11 +22,11 @@ public class MazeSpowner {
      * @param map
      * @return
      */
-    public Map fillMaze(final Map map) {
+    public ArrayList<Maze> fillMaze(final Map map) {
         try {
             setupSpowner(map);
             doSpown();
-            return _map;
+            return _mazes;
         } finally {
             cleanSpowner();
         }
@@ -34,12 +36,14 @@ public class MazeSpowner {
         _map = map;
         _readyNodes = new LinkedList<Point>();
         _carvedNodes = new ArrayList<Point>();
+        _mazes = new ArrayList<Maze>();
     }
 
     private void cleanSpowner() {
         _map = null;
         _readyNodes = null;
         _carvedNodes = null;
+        _mazes = null;
     }
 
     private void doSpown() {

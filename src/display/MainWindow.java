@@ -16,13 +16,13 @@ import spown.MapSpowner;
 
 public class MainWindow {
     JLabel _imageLabel;
-    
+
     public MainWindow() {
         JFrame mainWindow = setupMainWindow();
-        
+
         mainWindow.add(setupImageLabel());
         displayDefaultMap();
-        
+
         mainWindow.setVisible(true);
     }
 
@@ -46,21 +46,22 @@ public class MainWindow {
     private JLabel setupImageLabel() {
         _imageLabel = new JLabel();
         _imageLabel.setBounds(25, 25, 550, 550);
-        
+
         return _imageLabel;
     }
-    
+
     private void displayDefaultMap() {
         MapSpownData spownData = new MapSpownData();
-        
+
         spownData.mapWidth = 64;
         spownData.mapHeight = 64;
         spownData.minRoomWidth = 4;
         spownData.minRoomHeight = 4;
-        spownData.maxRoomWidth = 16;
-        spownData.maxRoomHeight = 16;
-        spownData.spownRoomTime = 80;
-        
+        spownData.maxRoomWidth = 4;
+        spownData.maxRoomHeight = 4;
+        spownData.spownRoomTime = 1;
+        spownData.roomDoorsProbability = new int[] { 2, 5 };
+
         Map map = new MapSpowner().spown(spownData);
         Image scaledMazeImage;
         if (map.getWidth() > map.getHeight())

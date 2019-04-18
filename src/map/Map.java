@@ -17,7 +17,7 @@ public class Map extends Rectangle {
 
         for (int y = 0; y < height; y++)
             for (int x = 0; x < width; x++)
-                _quads[x][y] = new Quad(QuadType.FLOOR);
+                _quads[x][y] = new Quad(x, y, QuadType.FLOOR);
     }
 
     public void setType(Point point, QuadType type) {
@@ -34,5 +34,9 @@ public class Map extends Rectangle {
 
     public QuadType getType(int x, int y) {
         return _quads[x][y].getType();
+    }
+
+    public Quad getQuad(int x, int y) {
+        return _quads[x][y];
     }
 }

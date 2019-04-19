@@ -53,12 +53,15 @@ public class MazeSpowner {
          * 3.雕刻完后，寻找下一个可以作为左上角的点，可以考虑找得到返回 Point，找不到返回 null，便于判断 
          * 4.直到找不到可以作为左上角的点为止，填充结束
          */
-        while (carveStartNode()) // 如果能成功雕刻起点就说明还有填充的空间，如果雕刻起点失败则说明已经没有空间填充迷宫了，循环也就可以结束了
+        while (getLeftTopNode() != null) { // 如果能成功雕刻起点就说明还有填充的空间，如果雕刻起点失败则说明已经没有空间填充迷宫了，循环也就可以结束了
+            _mazes.add(new Maze());
+            carveStartNode();
             while (_readyNodes.size() > 0) {
                 //long startCarveRandomNodeTime = System.currentTimeMillis();
                 carveRandomNode();
                 //System.out.println("随机雕刻一个节点耗时 " + (System.currentTimeMillis() - startCarveRandomNodeTime) + " 毫秒");
             }
+        }
     }
 
     /**
@@ -183,8 +186,12 @@ public class MazeSpowner {
     }
 
     private void breakWall(Point startNode, Point targetNode) {
-        _map.setType((startNode.x + targetNode.x) / 2, (startNode.y + targetNode.y) / 2, QuadType.FLOOR); // 这是中间的墙
+        Point wall = new Point((startNode.x + targetNode.x) / 2, (startNode.y + targetNode.y) / 2); // 这是中间的墙
+        _map.setType(wall, QuadType.FLOOR);
         _map.setType(targetNode, QuadType.FLOOR);
+
+        _mazes.get(_mazes.size() - 1).addQuad(_map.getQuad(wall.x, wall.y));
+        _mazes.get(_mazes.size() - 1).addQuad(_map.getQuad(targetNode.x, targetNode.y));
     }
 
     private void setContiguousDeactiveNodeToReadyList(Point centerNode) {

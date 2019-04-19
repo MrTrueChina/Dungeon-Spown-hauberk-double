@@ -11,6 +11,10 @@ public class Maze {
         return _quads.add(quad);
     }
     
+    public Quad[] getQuads() {
+        return _quads.toArray(new Quad[0]);
+    }
+    
     public boolean contains(Quad quad) {
         return _quads.contains(quad);
     }

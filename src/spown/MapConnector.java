@@ -560,8 +560,8 @@ public class MapConnector {
          *  得出结论：
          *      1.最多走三步
          *      2.遇到不是连接点的位置应该停止
-         *      3.停止的地方如果是墙，则说明此路不通
-         *      4.停止的地方如果是空地，则说明这条路可以走通
+         *      3.停止的地方如果是墙，则说明此路不通，要么是连接点生成错了要么是找错了，为了安全不做清理
+         *      4.停止的地方如果是空地，并且这个空地属于主区域。说明这串生成点已经没用了，可以移除
          */
         /*
          *  以 true 作为可以移除，以 false 作为不可移除
@@ -571,7 +571,7 @@ public class MapConnector {
          *      if (到达的位置是墙)
          *          此路不通 return false -> 3.停止的地方是墙，此路不通
          *          
-         *      if (到达的位置是空地)
+         *      if (到达的位置是空地 && 这个空地是主区域的空地)
          *          走对了 return true -> 4.停止的地方是空地，可以走通
          *  }
          *  
@@ -590,13 +590,20 @@ public class MapConnector {
          *  
          *  return false -> 默认是 false
          */
+        if(step > 3)
+            return false;
+        
         Point currentPoint = new Point(startPoint.x + direction.x * step, startPoint.y + direction.y * step);
+        
+        if(!_map.contains(currentPoint))
+            return false;
+        
         if (!_connectPoints[currentPoint.x][currentPoint.y]) {
-            if (_map.getType(currentPoint) == QuadType.FLOOR)
+            if (_map.getType(currentPoint) == QuadType.FLOOR && _mainZoneQuads.contains(_map.getQuad(currentPoint.x, currentPoint.y)))
                 return true;
 
-            if (_map.getType(currentPoint) == QuadType.WALL)
-                return false;
+//            if (_map.getType(currentPoint) == QuadType.WALL)
+//                return false;
         }
 
         if (clearConnectPoint(startPoint, direction, step + 1)) {
@@ -665,5 +672,4 @@ public class MapConnector {
          */
         return false;
     }
-
 }

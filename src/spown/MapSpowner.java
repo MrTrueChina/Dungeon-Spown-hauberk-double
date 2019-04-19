@@ -29,6 +29,8 @@ public class MapSpowner {
         System.out.println("生成了 " + _mazes.size() + " 个迷宫");
 
         new MapConnector().ConnectRoomsAndMaze(_map, _rooms, _mazes, _spownData);
+        
+        new Uncarver().uncarve(_map);
 
         return _map;
     }

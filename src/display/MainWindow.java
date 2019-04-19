@@ -77,9 +77,9 @@ public class MainWindow {
         spownData.mapHeight = 64;
         spownData.minRoomWidth = 4;
         spownData.minRoomHeight = 4;
-        spownData.maxRoomWidth = 6;
-        spownData.maxRoomHeight = 6;
-        spownData.spownRoomTime = 1000;
+        spownData.maxRoomWidth = 16;
+        spownData.maxRoomHeight = 16;
+        spownData.spownRoomTime = 100;
         spownData.roomDoorsProbability = new int[] { 2, 5 };
 
         Map map = new MapSpowner().spown(spownData);

@@ -14,23 +14,23 @@
  * 
  * 迷宫不可能紧靠，否则生成时就会生成过去。如果迷宫分为多个部分则必然是被房间分隔，因此所有可以开门的位置只有房间与房间和房间到迷宫。也就是说所有开门位置都可以以房间为起点进行搜索
  * 生成时在连接房间和迷宫时没有连接到的位置相当于不可见，这使得必须要有某种提示信息存在，否则只能进行高成本的遍历
- * 可以在房间外围制造生成点，但问题是有的房间距离迷宫和其他房间有厚度为2的墙，这使得生成点具有方向
- * 更大的问题是两个房间之间的生成点也有方向性，此时生成点如何表现出两个方向性？
- * 或者生成点没有方向性而是在打通的时候有方向性？
+ * 可以在房间外围制造连接点，但问题是有的房间距离迷宫和其他房间有厚度为2的墙，这使得连接点具有方向
+ * 更大的问题是两个房间之间的连接点也有方向性，此时连接点如何表现出两个方向性？
+ * 或者连接点没有方向性而是在打通的时候有方向性？
  * 
  * 连接点是由房间的四条边向外直线延伸，直到找到空地。因此和连接点相邻的地块必然在房间的正上下或正左右方向，不会有斜着的情况。
  * 
  * 
  * 连接连接前很可能需要把所有房间、迷宫都保存起来，之后要有一个合并方法，把连接起来的房间和迷宫合并到一个叫“主区域”的表里。
  * 
- * a.判断一个连接点是不是可以移除的方法应该是（一个连接点上下左右四个方向，长度最大为2，除了生成点外最近的地块，是不是墙或主区域。如果不是墙也不是主区域，则说明这个生成点能连接到没连接到的位置。）
+ * a.判断一个连接点是不是可以移除的方法应该是（一个连接点上下左右四个方向，长度最大为2，除了连接点外最近的地块，是不是墙或主区域。如果不是墙也不是主区域，则说明这个连接点能连接到没连接到的位置。）
  * 
  * b.移除连接点的第二种思路：以房间为单位移除连接点。因为迷宫之间不可能有连接点，那么所有连接点肯定都能从房间为起点找到（可以直接设计为连接点从房间向外生成）
 z*   既然连接点都可以通过房间找到，那就方便多了：
-z*   在连接一个房间之后，遍历这个房间的所有生成点，从房间内向外走，看最近的空地是不是主区域的空地，是的话就说明走过的所有生成点都没用了，不是的话说明生成点指向没有连接的区域
+z*   在连接一个房间之后，遍历这个房间的所有连接点，从房间内向外走，看最近的空地是不是主区域的空地，是的话就说明走过的所有连接点都没用了，不是的话说明连接点指向没有连接的区域
  *   
  *   
-z* 生成点部分：
+z* 连接点部分：
  * 
 z*  遍历房间
  *  {
@@ -60,20 +60,20 @@ z*  连接部分：
  *  
 z*  随机选一个房间，所有地块加入主区域表
  *  
- *  while(还有生成点)
+ *  while(还有连接点)
  *  {
- *      List 相邻的生成点 = 遍历主区域地块，获取所有和主区域相邻的生成点
+ *      List 相邻的连接点 = 遍历主区域地块，获取所有和主区域相邻的连接点
  *      
-z*      从相邻的生成点里随机一个生成点
-z*      在这个生成点上下左右四个方向里找到主区域的地块 -> 这个地块到生成点的方向就是相邻区域的方向
+z*      从相邻的连接点里随机一个连接点
+z*      在这个连接点上下左右四个方向里找到主区域的地块 -> 这个地块到连接点的方向就是相邻区域的方向
 z*      沿着这个方向找到下一个空地
 z*      把中间这段墙打通
 z*      把下一个区域所有方块加入到主区域
  *      
  *      if(主区域方向的地块属于某个房间)
-z*          移除房间生成点(主区域房间)
+z*          移除房间连接点(主区域房间)
  *      if(相邻区域的地块属于某个房间)
-z*          移除房间生成点(相邻区域房间)
+z*          移除房间连接点(相邻区域房间)
  *  }
  *  
  *  void 移除房间连接点(Room 房间)
@@ -127,12 +127,44 @@ public class MapConnector {
         try {
             setupConnector(map, rooms, mazes, spownData);
             spownConnectPoints();
+            //            printConnectPoints();
             StartConnect();
             return _map;
         } finally {
             clearConnector();
         }
     }
+
+    /**
+     * 【测试方法】输出生成点数组
+     */
+    private void printConnectPoints() {
+        StringBuilder string = new StringBuilder();
+
+        for (int y = 0; y < _map.height; y++) {
+            for (int x = 0; x < _map.width; x++) {
+                string.append(isConnectPoint(x, y) ? "大" : (_map.getType(x, y) == QuadType.WALL) ? "墙" : "一");
+            }
+            string.append("\n");
+        }
+
+        System.out.println("↓生成点↓");
+        System.out.println(string.toString());
+        System.out.println("↑生成点↑");
+    }
+    //TODO: 测试结果显示极有可能是判断是否移除连接点的方法出错了
+    //1.房间连迷宫、墙为纵向、厚度为2、左主区域右非主区域：：靠近主区域的（左侧的）厚度1的墙被移除了连接点
+    //2.房间连迷宫、墙为横向、厚度为1、上下都是主区域、检测区（迷宫）在上方：：墙的连接点没有被移除
+    //3.房间连迷宫、墙为横向、厚度为2、上下都是主区域、监测区（迷宫）在下方：：靠近选择区（靠下）的生成点被移除，远离（靠上）的仍然存在
+    //4.房间连迷宫、墙为纵向、厚度为2、左右都是主区域、检测区（迷宫）在右侧：：墙的连接点没有移除
+    //5.房间连迷宫、墙为纵向、厚度为1、左右都是主区域、检测区（迷宫）在左侧：：墙的连接点没有移除。但同时，其他情况相同的墙的连接点被移除【没有获取到全部的连接点？】
+    //6.【疑似】房间与迷宫相连、墙为横向，厚度为1、上下都是主区域，检测区无法确认：：之前没有正确清理的连接点被正确清理了
+    //7.房间连迷宫、墙为纵向、厚度为1、上下都是主区域、检测区（迷宫）在左侧：：墙的连接点没有移除
+    //8.房间连迷宫、墙为横向、厚度为2、下主区域上非主区域：：靠近主区域的（下方的）厚度1的墙被移除了连接点
+
+    //房间连房间暂未发现错误
+
+    //迷宫连房间暂未发现错误
 
     private void setupConnector(Map map, ArrayList<Room> rooms, ArrayList<Maze> mazes, MapSpownData spownData) {
         _map = map;
@@ -172,6 +204,11 @@ public class MapConnector {
             spownARoomConnectPoints(room);
     }
 
+    /**
+     * 生成一个房间的连接点
+     * 
+     * @param room
+     */
     private void spownARoomConnectPoints(Room room) {
         /**
          *  遍历房间上边每个地块
@@ -191,10 +228,16 @@ public class MapConnector {
             spownAQuadConnectPoints(quad, Vector.LEFT);
     }
 
-    private void spownAQuadConnectPoints(Point quadPosition, Vector direction) {
+    /**
+     * 生成一个地块相邻的连接点
+     * 
+     * @param startPosition
+     * @param direction
+     */
+    private void spownAQuadConnectPoints(Point startPosition, Vector direction) {
         //        System.out.println("在 " + quadPosition + " 位置向 " + direction + " 方向生成连接点");
 
-        spownAQuadConnectPoints(quadPosition, direction, 1); // 传 1 是因为 0 是房间边缘的地块，属于房间
+        spownAQuadConnectPoints(startPosition, direction, 1); // 传 1 是因为 0 是房间边缘的地块，是空地，会直接结束生成
 
         //测试部分
         //        int num = 0;
@@ -249,8 +292,63 @@ public class MapConnector {
         return false;
     }
 
+    /**
+     * 添加连接点
+     * 
+     * @param point
+     */
     private void addConnectPoint(Point point) {
-        _connectPoints[point.x][point.y] = true;
+        addConnectPoint(point.x, point.y);
+    }
+
+    /**
+     * 添加连接点
+     * 
+     * @param x
+     * @param y
+     */
+    private void addConnectPoint(int x, int y) {
+        _connectPoints[x][y] = true;
+    }
+
+    /**
+     * 移除连接点
+     * 
+     * @param point
+     */
+    private void removeConnectPoint(Point point) {
+        removeConnectPoint(point.x, point.y);
+    }
+
+    /**
+     * 移除连接点
+     * 
+     * @param x
+     * @param y
+     */
+    private void removeConnectPoint(int x, int y) {
+        _connectPoints[x][y] = false;
+    }
+
+    /**
+     * 判断一个位置是不是连接点
+     * 
+     * @param point
+     * @return
+     */
+    private boolean isConnectPoint(Point point) {
+        return isConnectPoint(point.x, point.y);
+    }
+
+    /**
+     * 判断一个位置是不是连接点
+     * 
+     * @param x
+     * @param y
+     * @return
+     */
+    private boolean isConnectPoint(int x, int y) {
+        return _connectPoints[x][y];
     }
 
     /**
@@ -283,7 +381,7 @@ public class MapConnector {
          *  Room 房间 =  随机出一个房间
          *  房间中的地块加入到主区域
          *  
-         *  还需要其他操作吗？似乎不需要，似乎没有清理生成点的必要性
+         *  还需要其他操作吗？似乎不需要，似乎没有清理连接点的必要性
          */
         Room room = getRandomRoom();
         System.out.println("第一个房间 = " + room);
@@ -331,7 +429,7 @@ public class MapConnector {
     }
 
     /**
-     * 获取一个地块上下左右四个相邻位置中第一个是生成点的那个，如果四个都不是生成点则返回 null
+     * 获取一个地块上下左右四个相邻位置中第一个是连接点的那个，如果四个都不是连接点则返回 null
      * 
      * @param quad
      * @return
@@ -340,8 +438,8 @@ public class MapConnector {
         /*
          *  遍历当前地块的上下左右四个Point
          *  {
-         *      if (找到生成点了)
-         *          return 找到的生成点
+         *      if (找到连接点了)
+         *          return 找到的连接点
          *  }
          *  
          *  没找到 return null
@@ -400,7 +498,7 @@ public class MapConnector {
             Quad currentQuad = _map.getQuad(startPoint.x + direction.x * step, startPoint.y + direction.y * step);
 
             if (_map.getType(currentQuad) != QuadType.FLOOR) {
-                connectAWall(currentQuad);
+                connectAQuad(currentQuad);
             } else {
                 Room currentRoom = getRoome(_map.getQuad(currentQuad));
                 if (currentRoom != null) {
@@ -417,17 +515,28 @@ public class MapConnector {
         }
     }
 
-    private void connectAWall(Point wallPoint) {
+    /**
+     * 把一个地块连接到主区域
+     * 
+     * @param quadPoint
+     */
+    private void connectAQuad(Point quadPoint) {
         /*
          *  打穿墙
          *  加进主区域
          *  清除连接点
          */
-        _map.setType(wallPoint, QuadType.FLOOR);
-        _mainZoneQuads.add(_map.getQuad(wallPoint));
-        _connectPoints[wallPoint.x][wallPoint.y] = false;
+        _map.setType(quadPoint, QuadType.FLOOR);
+        _mainZoneQuads.add(_map.getQuad(quadPoint));
+        _connectPoints[quadPoint.x][quadPoint.y] = false;
     }
 
+    /**
+     * 获取一个地块相邻的一个主区域地块
+     * 
+     * @param center
+     * @return
+     */
     private Point getContiguousMainQuad(Point center) {
         if (_mainZoneQuads.contains(_map.getQuad(center.x, center.y + 1)))
             return _map.getQuad(center.x, center.y + 1);
@@ -498,7 +607,7 @@ public class MapConnector {
          *  清理这个迷宫所有相邻连接点
          *  清理连接到迷宫的房间的连接点（可能不需要）
          */
-        connectAMaze(maze);
+        addMazeQuadsToMainZone(maze);
         clearAMazeConnectPoints(maze);
 
         if (getRoome(_map.getQuad(startPoint)) != null)
@@ -506,12 +615,103 @@ public class MapConnector {
     }
 
     /**
-     * 清理一个迷宫的生成点
+     * 清理一个迷宫的连接点
      * 
      * @param maze
      */
     private void clearAMazeConnectPoints(Maze maze) {
-        
+        /*
+         *  获取迷宫所有相邻的连接点
+         *  {
+         *      清理连接点
+         *  }
+         */
+        for (Point connectPoint : getMazeConnectPoints(maze))
+            clearAConnect(connectPoint);
+    }
+
+    /**
+     * 获取一个迷宫所有相邻的连接点
+     * 
+     * @param maze
+     * @return
+     */
+    private ArrayList<Point> getMazeConnectPoints(Maze maze) {
+        /*
+         *  List<Point> 相邻连接点
+         *  遍历迷宫所有地块
+         *  {
+         *      相邻连接点.加入(获取一个地块相邻的连接点()) 会不会有重复的？用set？
+         *  }
+         *  
+         *  return 连接点
+         */
+        ArrayList<Point> connectPoints = new ArrayList<Point>();
+
+        for (Quad quad : maze.getQuads())
+            connectPoints.addAll(getContiguousConnectPoints(quad));
+
+        return connectPoints;
+    }
+
+    /**
+     * 获取一个地块所有相邻的连接点
+     * 
+     * @param center
+     * @return
+     */
+    private HashSet<Point> getContiguousConnectPoints(Point center) {
+        HashSet<Point> connectPoints = new HashSet<Point>();
+
+        if (_connectPoints[center.x][center.y + 1])
+            connectPoints.add(new Point(center.x, center.y + 1));
+        if (_connectPoints[center.x + 1][center.y])
+            connectPoints.add(new Point(center.x + 1, center.y));
+        if (_connectPoints[center.x][center.y - 1])
+            connectPoints.add(new Point(center.x, center.y - 1));
+        if (_connectPoints[center.x - 1][center.y])
+            connectPoints.add(new Point(center.x - 1, center.y));
+
+        return connectPoints;
+    }
+
+    /**
+     * 清理一个连接点
+     * 
+     * @param connectPoint
+     */
+    private void clearAConnect(Point connectPoint) {
+        /*
+         *  主区域地块 = 获取相邻的主区域地块()
+         *  方向 = 连接点 - 主区域地块
+         *  
+         *  递归清理连接点
+         */
+
+        Point mainZoneQuadPoint = getContiguousMainZoneQuad(connectPoint);
+        if (mainZoneQuadPoint != null) {
+            Vector direction = new Vector(connectPoint.x - mainZoneQuadPoint.x, connectPoint.y - mainZoneQuadPoint.y);
+
+            clearAQuadConnectPoint(mainZoneQuadPoint, direction);
+        }
+    }
+
+    /**
+     * 获取一个地块相邻的主区域地块
+     * 
+     * @param center
+     * @return
+     */
+    private Quad getContiguousMainZoneQuad(Point center) {
+        if (_connectPoints[center.x][center.y + 1])
+            return _map.getQuad(center.x, center.y + 1);
+        if (_connectPoints[center.x + 1][center.y])
+            return _map.getQuad(center.x + 1, center.y);
+        if (_connectPoints[center.x][center.y - 1])
+            return _map.getQuad(center.x, center.y - 1);
+        if (_connectPoints[center.x - 1][center.y])
+            return _map.getQuad(center.x - 1, center.y);
+        return null;
     }
 
     private void clearARoomConnectPoints(Room room) {
@@ -532,6 +732,7 @@ public class MapConnector {
             clearAQuadConnectPoint(quad, Vector.DOWN);
         for (Quad quad : room.getLeftQuads())
             clearAQuadConnectPoint(quad, Vector.LEFT);
+        //TODO: 在这
     }
 
     /**
@@ -542,9 +743,10 @@ public class MapConnector {
      */
     private void clearAQuadConnectPoint(Point startPoint, Vector direction) {
         clearConnectPoint(startPoint, direction, 1); // 从第一步开始，第零步是房间边缘的地块，肯定不是连接点
+        printConnectPoints();
     }
 
-    private boolean clearConnectPoint(Point startPoint, Vector direction, int step) {
+    private boolean clearConnectPoint(final Point startPoint, final Vector direction, final int step) {
         /*
          *  设计上如果方向正确连接点最少没有最多两个
          *      0个：此路不通，应直接结束
@@ -554,7 +756,7 @@ public class MapConnector {
          *      1.最多走三步
          *      2.遇到不是连接点的位置应该停止
          *      3.停止的地方如果是墙，则说明此路不通，要么是连接点生成错了要么是找错了，为了安全不做清理
-         *      4.停止的地方如果是空地，并且这个空地属于主区域。说明这串生成点已经没用了，可以移除
+         *      4.停止的地方如果是空地，并且这个空地属于主区域。说明这串连接点已经没用了，可以移除
          */
         /*
          *  以 true 作为可以移除，以 false 作为不可移除
@@ -570,7 +772,7 @@ public class MapConnector {
          *  
          *  if (向下递归是 true)
          *  {
-         *      移除自己这一格的生成点
+         *      移除自己这一格的连接点
          *      return true
          *  }
          *  else
@@ -583,21 +785,24 @@ public class MapConnector {
          *  
          *  return false -> 默认是 false
          */
-        if (step > 3)
+        if (step > 3) {
+            //          ut.println("因超出三步错误");
             return false;
+        }
 
         Point currentPoint = new Point(startPoint.x + direction.x * step, startPoint.y + direction.y * step);
 
-        if (!_map.contains(currentPoint))
+        if (!_map.contains(currentPoint)) {
+            //            System.out.println("搜索连接点超出地图边界");
             return false;
+        }
 
         if (!_connectPoints[currentPoint.x][currentPoint.y]) {
-            if (_map.getType(currentPoint) == QuadType.FLOOR
-                    && _mainZoneQuads.contains(_map.getQuad(currentPoint.x, currentPoint.y)))
+            if (_mainZoneQuads.contains(_map.getQuad(currentPoint.x, currentPoint.y)))
                 return true;
-
-            //            if (_map.getType(currentPoint) == QuadType.WALL)
+            //            else
             //                return false;
+            //TODO: 此处加上不是生成点不是主区域的返回时仍然发生超出三步错误，可能是生成连接点时发生错误
         }
 
         if (clearConnectPoint(startPoint, direction, step + 1)) {
@@ -605,29 +810,16 @@ public class MapConnector {
             return true;
         }
 
+        //        System.out.println("在最后判断错误");
         return false;
-
-        //        if (step > 3)
-        //            return false;
-        //
-        //        Point checkPoint = new Point(startPoint.x + direction.x * step, startPoint.y + direction.y * step);
-        //        if (!_map.contains(checkPoint))
-        //            return false;
-        //
-        //        return false;
     }
 
     /**
-     * 讲一个迷宫归入主区域
+     * 将一个迷宫所有地块加入主区域
      * 
      * @param maze
      */
-    private void connectAMaze(Maze maze) {
-        /*
-         *  将迷宫所有地块加入主区域
-         *  
-         *  还有其他操作吗？似乎没有了
-         */
+    private void addMazeQuadsToMainZone(Maze maze) {
         _mainZoneQuads.addAll(Arrays.asList(maze.getQuads()));
     }
 }

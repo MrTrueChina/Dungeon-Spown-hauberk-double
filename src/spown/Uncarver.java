@@ -3,7 +3,7 @@ package spown;
 import java.awt.Point;
 
 import map.Map;
-import quad.QuadType;
+import map.quad.QuadType;
 
 public class Uncarver {
     Map _map;
@@ -76,7 +76,6 @@ public class Uncarver {
     }
 
     private void clearADeadEnd(final Point deadEnd) {
-        //TODO: 清理一个死胡同，最好是一次清理一行的
         /*
          * 要一次清理一串死胡同，必须要解决的问题是清理一个死胡同后怎么样将清理点移动到下一个位置
          * 首先当然要有一个 Point 存储清理点
@@ -91,10 +90,9 @@ public class Uncarver {
          *      找到清理点旁边的那个空地，把清理点移过去
          *  }
          */
-
         Point clearPoint = deadEnd;
 
-        while (isDeadEnd(clearPoint)) {
+        while (clearPoint != null && isDeadEnd(clearPoint)) {
             _map.setType(clearPoint, QuadType.WALL);
             clearPoint = getContiguousFloorPoint(clearPoint);
         }

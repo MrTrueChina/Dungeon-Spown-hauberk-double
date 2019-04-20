@@ -1,4 +1,4 @@
-package room.test;
+package map.room.test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,9 +14,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import map.Map;
-import quad.Quad;
-import quad.QuadType;
-import room.Room;
+import map.quad.Quad;
+import map.quad.QuadType;
+import map.room.Room;
 
 class RoomTest {
     private Map _map;

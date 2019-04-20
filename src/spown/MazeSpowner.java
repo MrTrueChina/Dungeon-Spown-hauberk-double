@@ -7,8 +7,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import map.Map;
-import maze.Maze;
-import quad.QuadType;
+import map.maze.Maze;
+import map.quad.QuadType;
 
 public class MazeSpowner {
     private LinkedList<Point> _readyNodes; // 开表，用于存储准备雕刻的节点

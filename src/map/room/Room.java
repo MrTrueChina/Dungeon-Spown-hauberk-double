@@ -1,13 +1,17 @@
-package room;
+package map.room;
 
 import java.awt.Rectangle;
 
 import map.Map;
-import quad.Quad;
+import map.quad.Quad;
 
 @SuppressWarnings("serial")
 public class Room extends Rectangle {
     private Quad[][] _quads;
+
+    public Room(Rectangle rectangle, Map map) {
+        this(rectangle.x, rectangle.y, rectangle.width, rectangle.height, map);
+    }
 
     public Room(int width, int height, Map map) {
         this(0, 0, width, height, map);
@@ -98,5 +102,13 @@ public class Room extends Rectangle {
      */
     public Rectangle getExpandedRectangle() {
         return new Rectangle(x - 1, y - 1, width + 2, height + 2); // Rectangle 的相交判断似乎不包括长宽方向的边缘，因此+2
+    }
+
+    public boolean contains(Quad quad) {
+        for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
+                if (_quads[x][y] == quad)
+                    return true;
+        return false;
     }
 }

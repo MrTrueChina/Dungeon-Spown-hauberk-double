@@ -1,4 +1,4 @@
-package quad;
+package map.quad;
 
 public enum QuadType {
     /**

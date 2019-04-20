@@ -1,16 +1,17 @@
 package spown;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import map.Map;
-import quad.QuadType;
+import map.quad.QuadType;
+import map.room.Room;
 import random.Random;
-import room.Room;
 
 public class RoomsSpowner {
-    MapSpownData _spownData;
-    Map _map;
-    ArrayList<Room> _rooms = new ArrayList<Room>();
+    private MapSpownData _spownData;
+    private Map _map;
+    private ArrayList<Room> _rooms = new ArrayList<Room>();
 
     /**
      * 在地图中生成房间
@@ -20,11 +21,15 @@ public class RoomsSpowner {
      * @return
      */
     public ArrayList<Room> spownRooms(Map map, MapSpownData spownData) {
-        setupSpowner(map, spownData);
+        try {
+            setupSpowner(map, spownData);
 
-        doSpown();
+            doSpown();
 
-        return _rooms;
+            return _rooms;
+        } finally {
+            clearSpowner();
+        }
     }
 
     private void setupSpowner(Map map, MapSpownData spownData) {
@@ -32,23 +37,43 @@ public class RoomsSpowner {
         _spownData = spownData;
     }
 
+    private void clearSpowner() {
+        _map = null;
+        _spownData = null;
+    }
+
     private void doSpown() {
+        /*
+         *  for (生成信息里的房间生成次数)
+         *  {
+         *      随机获取一个房间的范围（位置和大小）
+         *      
+         *      if (房间能放置)
+         *      {
+         *          把这个房间放置到地图里
+         *      }
+         *  }
+         */
         for (int i = 0; i < _spownData.spownRoomTime; i++) {
-            int roomWidth = Random.Range(_spownData.minRoomWidth, _spownData.maxRoomWidth);
-            int roomHeight = Random.Range(_spownData.minRoomHeight, _spownData.maxRoomHeight);
-            int roomX = Random.Range(1, _spownData.mapWidth - roomWidth - 1); // 留出地图左右边框
-            int roomY = Random.Range(1, _spownData.mapHeight - roomHeight - 1);
-
-            Room newRoom = new Room(roomX, roomY, roomWidth, roomHeight, _map);
-
-            if (newRoomCanPut(newRoom))
-                putRoom(newRoom);
+            Rectangle roomBound = gerRandomRoomBound();
+            if (roomCanPut(roomBound)) {
+                putRoom(new Room(roomBound, _map));
+            }
         }
     }
 
-    private boolean newRoomCanPut(Room newRoom) {
+    private Rectangle gerRandomRoomBound() {
+        int roomWidth = Random.Range(_spownData.minRoomWidth, _spownData.maxRoomWidth);
+        int roomHeight = Random.Range(_spownData.minRoomHeight, _spownData.maxRoomHeight);
+        int roomX = Random.Range(1, _spownData.mapWidth - roomWidth - 1); // 留出地图左右边框
+        int roomY = Random.Range(1, _spownData.mapHeight - roomHeight - 1);
+
+        return new Rectangle(roomX, roomY, roomWidth, roomHeight);
+    }
+
+    private boolean roomCanPut(Rectangle roomBound) {
         for (Room oldRoom : _rooms) {
-            if (oldRoom.getExpandedRectangle().intersects(newRoom))
+            if (oldRoom.getExpandedRectangle().intersects(roomBound))
                 return false;
         }
         return true;

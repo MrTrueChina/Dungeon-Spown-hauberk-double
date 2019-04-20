@@ -13,23 +13,23 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 
 import map.Map;
-import save.SaveMap;
 import spown.MapSpownData;
 import spown.MapSpowner;
 
 public class MainWindow {
-    JLabel _imageLabel;
-    JButton _spownButton;
+    private JLabel _imageLabel;
+    private JButton _spownButton;
 
     public MainWindow() {
         JFrame mainWindow = setupMainWindow();
 
         mainWindow.add(setupImageLabel());
-        displayDefaultMap();
         
         mainWindow.add(setupSpownButton());
 
         mainWindow.setVisible(true);
+        
+        displayDefaultMap();
     }
 
     private JFrame setupMainWindow() {
@@ -85,9 +85,9 @@ public class MainWindow {
         Map map = new MapSpowner().spown(spownData);
         Image scaledMazeImage;
         if (map.getWidth() > map.getHeight())
-            scaledMazeImage = SaveMap.mapToImage(map).getScaledInstance(550, -1, Image.SCALE_FAST);
+            scaledMazeImage = MapToImage.mapToImage(map).getScaledInstance(550, -1, Image.SCALE_FAST);
         else
-            scaledMazeImage = SaveMap.mapToImage(map).getScaledInstance(-1, 550, Image.SCALE_FAST);
+            scaledMazeImage = MapToImage.mapToImage(map).getScaledInstance(-1, 550, Image.SCALE_FAST);
 
         _imageLabel.setIcon(new ImageIcon(scaledMazeImage));
     }

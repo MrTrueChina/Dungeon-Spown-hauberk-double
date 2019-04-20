@@ -3,9 +3,9 @@ package spown;
 import java.util.ArrayList;
 
 import map.Map;
-import maze.Maze;
-import quad.QuadType;
-import room.Room;
+import map.maze.Maze;
+import map.quad.QuadType;
+import map.room.Room;
 
 public class MapSpowner {
     private MapSpownData _spownData;

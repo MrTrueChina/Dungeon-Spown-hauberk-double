@@ -3,8 +3,8 @@ package map;
 import java.awt.Point;
 import java.awt.Rectangle;
 
-import quad.Quad;
-import quad.QuadType;
+import map.quad.Quad;
+import map.quad.QuadType;
 
 @SuppressWarnings("serial")
 public class Map extends Rectangle {
@@ -34,6 +34,10 @@ public class Map extends Rectangle {
 
     public QuadType getType(int x, int y) {
         return _quads[x][y].getType();
+    }
+
+    public Quad getQuad(Point point) {
+        return getQuad(point.x, point.y);
     }
 
     public Quad getQuad(int x, int y) {

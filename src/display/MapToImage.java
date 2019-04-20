@@ -1,13 +1,13 @@
-package save;
+package display;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
 import map.Map;
-import quad.QuadType;
+import map.quad.QuadType;
 
-public class SaveMap {
+public class MapToImage {
     public static BufferedImage mapToImage(Map map) {
         BufferedImage bufferedImage = new BufferedImage(map.width, map.height, BufferedImage.TYPE_BYTE_GRAY);
         Graphics2D graphics = (Graphics2D) bufferedImage.getGraphics();

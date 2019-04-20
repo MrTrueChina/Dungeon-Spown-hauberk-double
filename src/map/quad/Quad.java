@@ -1,4 +1,4 @@
-package quad;
+package map.quad;
 
 import java.awt.Point;
 

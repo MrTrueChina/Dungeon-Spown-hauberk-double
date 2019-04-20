@@ -1,8 +1,8 @@
-package maze;
+package map.maze;
 
 import java.util.HashSet;
 
-import quad.Quad;
+import map.quad.Quad;
 
 public class Maze {
     HashSet<Quad> _quads = new HashSet<Quad>();

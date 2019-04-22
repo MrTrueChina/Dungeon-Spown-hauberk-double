@@ -107,6 +107,7 @@ import map.quad.Quad;
 import map.quad.QuadType;
 import map.room.Room;
 import random.Random;
+import spown.zones.Zone;
 import vector.Vector;
 
 public class MapConnector {
@@ -550,7 +551,13 @@ public class MapConnector {
             if (_map.getType(currentQuad) != QuadType.FLOOR) {
                 connectAQuad(currentQuad);
             } else {
-                Room currentRoom = getRoome(_map.getQuad(currentQuad));
+                /*
+                 *  通过地块获取区域
+                 *  连接这个区域
+                 */
+                //Zone zone = getZoneByQuad(currentQuad);
+                //connectAZone(zone);
+                Room currentRoom = getRoome(currentQuad);
                 if (currentRoom != null) {
                     connectARoom(startPoint, currentRoom);
                     return;
@@ -563,6 +570,33 @@ public class MapConnector {
                 }
             }
         }
+    }
+
+    /**
+     * 获取地块所属的区域
+     * 
+     * @param quad
+     * @return
+     */
+    private Zone getZoneByQuad(Quad quad) {
+        //TODO: 获取地块所属的区域
+        /*
+         *  目标方案：
+         *  遍历区域（这个结合或数组需要添加，并要在初始化时一并准备，当然也要在清理时移除）
+         *      if (区域包含这个地块)
+         *          return 这个区域
+         *  return null
+         */
+        return null;
+    }
+
+    /**
+     * 连接一个区域
+     * 
+     * @param zone
+     */
+    private void connectAZone(Zone zone) {
+        //TODO: 连接一个区域
     }
 
     /**

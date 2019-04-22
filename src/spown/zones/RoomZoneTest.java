@@ -27,10 +27,6 @@ class RoomZoneTest {
     private final int ROOM_HEIGHT = 6;
 
     Map _map;
-    /**
-    * x坐标范围：4-12
-    * y坐标范围：2-8
-    */
     Room _room;
     RoomZone _roomZone;
 
@@ -88,13 +84,13 @@ class RoomZoneTest {
     }
 
     @Test
-    final void getQuadArray_Normal() {
+    final void getQuads_Normal() {
         ArrayList<Quad> roomQuads = new ArrayList<Quad>();
         for (int x = 0; x < _room.width; x++)
             for (int y = 0; y < _room.height; y++)
                 roomQuads.add(_room.getQuad(x, y));
 
-        ArrayList<Quad> zoneQuads = new ArrayList<Quad>(Arrays.asList(_roomZone.getQuadArray()));
+        ArrayList<Quad> zoneQuads = new ArrayList<Quad>(Arrays.asList(_roomZone.getQuads()));
 
         Assertions.assertArrayListEquals(roomQuads, zoneQuads);
     }

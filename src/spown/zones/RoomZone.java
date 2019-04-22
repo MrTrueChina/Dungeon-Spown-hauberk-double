@@ -4,7 +4,7 @@ import java.awt.Rectangle;
 import map.quad.Quad;
 import map.room.Room;
 
-public class RoomZone {
+public class RoomZone implements Zone {
     private Room _room;
 
     public RoomZone(Room room) {
@@ -24,12 +24,9 @@ public class RoomZone {
      * @param quad
      * @return
      */
+    @Override
     public boolean contains(Quad quad) {
-        for (int x = 0; x < _room.width; x++)
-            for (int y = 0; y < _room.height; y++)
-                if (quad == _room.getQuad(x, y))
-                    return true;
-        return false;
+        return _room.contains(quad);
     }
 
     /**
@@ -37,7 +34,8 @@ public class RoomZone {
      * 
      * @return
      */
-    public Quad[] getQuadArray() {
+    @Override
+    public Quad[] getQuads() {
         Quad[] quadArray = new Quad[_room.width * _room.height];
 
         for (int y = 0; y < _room.height; y++)
@@ -102,4 +100,5 @@ public class RoomZone {
     public boolean nonadjacent(Rectangle rectangle) {
         return !(new Rectangle(_room.x - 1, _room.y - 1, _room.width + 2, _room.height + 2).intersects(rectangle));
     }
+
 }

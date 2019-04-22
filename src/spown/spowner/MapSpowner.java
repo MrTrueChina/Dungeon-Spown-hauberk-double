@@ -30,7 +30,7 @@ public class MapSpowner {
 
         new MapConnector().ConnectRoomsAndMaze(_map, _rooms, _mazes, _spownData);
         
-//        new Uncarver().uncarve(_map);
+        new Uncarver().uncarve(_map);
 
         return _map;
     }

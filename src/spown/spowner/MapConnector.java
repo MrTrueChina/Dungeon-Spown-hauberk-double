@@ -102,18 +102,19 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import map.Map;
-import map.maze.Maze;
 import map.quad.Quad;
 import map.quad.QuadType;
-import map.room.Room;
 import random.Random;
+import spown.zones.MazeZone;
+import spown.zones.RoomZone;
 import spown.zones.Zone;
 import vector.Vector;
 
 public class MapConnector {
     private Map _map;
-    private ArrayList<Room> _rooms;
-    private ArrayList<Maze> _mazes;
+    private ArrayList<RoomZone> _rooms;
+    private ArrayList<MazeZone> _mazes;
+    private ArrayList<Zone> _zones;
     private MapSpownData _spownData;
     private HashSet<Quad> _mainZoneQuads; // 利用 HashSet 的无序性来进行随机查找与主区域相邻的连接点
     private boolean[][] _connectPoints;
@@ -124,7 +125,8 @@ public class MapConnector {
      * @param map
      * @param rooms
      */
-    public Map ConnectRoomsAndMaze(Map map, ArrayList<Room> rooms, ArrayList<Maze> mazes, MapSpownData spownData) {
+    public Map ConnectRoomsAndMaze(Map map, ArrayList<RoomZone> rooms, ArrayList<MazeZone> mazes,
+            MapSpownData spownData) {
         try {
             setupConnector(map, rooms, mazes, spownData);
             spownConnectPoints();
@@ -215,7 +217,7 @@ public class MapConnector {
      *  解决方式是在清除迷宫生成点时遍历所有主区域，并从主区域向所有方向发出清理
      */
 
-    private void setupConnector(Map map, ArrayList<Room> rooms, ArrayList<Maze> mazes, MapSpownData spownData) {
+    private void setupConnector(Map map, ArrayList<RoomZone> rooms, ArrayList<MazeZone> mazes, MapSpownData spownData) {
         _map = map;
         _rooms = rooms;
         _mazes = mazes;
@@ -226,6 +228,11 @@ public class MapConnector {
         for (int y = 0; y < _map.height; y++)
             for (int x = 0; x < _map.width; x++)
                 removeConnectPoint(x, y);
+
+        _zones = new ArrayList<Zone>();
+        _zones.addAll(_rooms);
+        _zones.addAll(_mazes);
+        System.out.println("总区域数 = " + _zones.size());
     }
 
     private void clearConnector() {
@@ -234,6 +241,8 @@ public class MapConnector {
         _spownData = null;
         _connectPoints = null;
         _mainZoneQuads = null;
+
+        _zones = null;
     }
 
     /**
@@ -247,7 +256,7 @@ public class MapConnector {
          *  }
          */
         //System.out.println("开始生成连接点");
-        for (Room room : _rooms)
+        for (RoomZone room : _rooms)
             spownARoomConnectPoints(room);
     }
 
@@ -256,7 +265,7 @@ public class MapConnector {
      * 
      * @param room
      */
-    private void spownARoomConnectPoints(Room room) {
+    private void spownARoomConnectPoints(RoomZone room) {
         /**
          *  遍历房间上边每个地块
          *  {
@@ -433,12 +442,12 @@ public class MapConnector {
          *  
          *  还需要其他操作吗？似乎不需要，似乎没有清理连接点的必要性
          */
-        Room room = getRandomRoom();
+        RoomZone room = getRandomRoom();
         addARoomQuadsToMainZone(room);
         //System.out.println("第一个房间 = " + room);
     }
 
-    private Room getRandomRoom() {
+    private RoomZone getRandomRoom() {
         return _rooms.get(Random.Range(0, _rooms.size()));
     }
 
@@ -447,8 +456,8 @@ public class MapConnector {
      * 
      * @param room
      */
-    private void addARoomQuadsToMainZone(final Room room) {
-        _mainZoneQuads.addAll(Arrays.asList(room.getQuadArray()));
+    private void addARoomQuadsToMainZone(final RoomZone room) {
+        _mainZoneQuads.addAll(Arrays.asList(room.getQuads()));
     }
 
     /**
@@ -525,23 +534,12 @@ public class MapConnector {
          *      }
          *      else
          *      {
-         *          Room 房间 = 根据地块获取房间(当前地块)
-         *          if(房间 != null)
-         *          {
-         *              连接这个房间
-         *              return
-         *          }
-         *          
-         *          Maze 迷宫 = 根据地块获取迷宫()
-         *          if(迷宫 != null)
-         *          {
-         *              连接这个迷宫
-         *              return
-         *          }
+         *          根据地块获取区域()
+         *          连接这个区域()
+         *          return
          *      }
          *  }
          */
-        //TODO: 代码实现太恶心，尝试对接区域类后用超类解决问题
         Point startPoint = getContiguousMainQuad(connectPoint);
         Vector direction = new Vector(connectPoint.x - startPoint.x, connectPoint.y - startPoint.y);
 
@@ -551,23 +549,9 @@ public class MapConnector {
             if (_map.getType(currentQuad) != QuadType.FLOOR) {
                 connectAQuad(currentQuad);
             } else {
-                /*
-                 *  通过地块获取区域
-                 *  连接这个区域
-                 */
-                //Zone zone = getZoneByQuad(currentQuad);
-                //connectAZone(zone);
-                Room currentRoom = getRoome(currentQuad);
-                if (currentRoom != null) {
-                    connectARoom(startPoint, currentRoom);
-                    return;
-                }
-
-                Maze currentMaze = getMaze(currentQuad);
-                if (currentMaze != null) {
-                    connectAMaze(startPoint, currentMaze);
-                    return;
-                }
+                Zone zone = getZoneByQuad(currentQuad);
+                connectAZone(zone);
+                return;
             }
         }
     }
@@ -579,14 +563,15 @@ public class MapConnector {
      * @return
      */
     private Zone getZoneByQuad(Quad quad) {
-        //TODO: 获取地块所属的区域
         /*
-         *  目标方案：
-         *  遍历区域（这个结合或数组需要添加，并要在初始化时一并准备，当然也要在清理时移除）
+         *  遍历区域
          *      if (区域包含这个地块)
          *          return 这个区域
          *  return null
          */
+        for (Zone zone : _zones)
+            if (zone.contains(quad))
+                return zone;
         return null;
     }
 
@@ -596,7 +581,37 @@ public class MapConnector {
      * @param zone
      */
     private void connectAZone(Zone zone) {
-        //TODO: 连接一个区域
+        /*
+         *  将这个区域所有地块加入主区域
+         *  清理这个区域的连接点
+         */
+        addZoneQuadsToMainZone(zone);
+        clearAZoneConnectPoints(zone);
+    }
+
+    /**
+     * 将一个区域的所有地块加入主区域
+     * 
+     * @param zone
+     */
+    private void addZoneQuadsToMainZone(Zone zone) {
+        _mainZoneQuads.addAll(Arrays.asList(zone.getQuads()));
+    }
+
+    /**
+     * 清理一个区域的连接点
+     * 
+     * @param zone
+     */
+    private void clearAZoneConnectPoints(Zone zone) {
+        /*
+         *  遍历这个区域所有的地块
+         *  {
+         *      清理这个地块的连接点
+         *  }
+         */
+        for (Quad quad : zone.getQuads())
+            clearAQuadConnectPoint(quad);
     }
 
     /**
@@ -633,58 +648,6 @@ public class MapConnector {
         removeConnectPoint(quadPoint);
     }
 
-    /**
-     * 获取地块所属的房间
-     * 
-     * @param quad
-     * @return 地块所属的房间，如果地块不属于任何房间则返回 null
-     */
-    private Room getRoome(Quad quad) {
-        for (Room room : _rooms)
-            if (room.contains(quad))
-                return room;
-        return null;
-    }
-
-    /**
-    * 将房间加入主区域
-    * 
-    * @param startPoint
-    * @param room
-    */
-    private void connectARoom(Point startPoint, Room room) {
-        /*
-         *  将这个房间所有的地块加入到主区域
-         *  清除这个房间的连接点
-         */
-        addARoomQuadsToMainZone(room);
-        clearARoomConnectPoints(room);
-    }
-
-    /**
-     * 清理一个房间的连接点
-     * 
-     * @param room
-     */
-    private void clearARoomConnectPoints(Room room) {
-        /*
-         *  遍历上下左右四个边
-         *  {
-         *      遍历边上的所有地块
-         *      {
-         *          清除这个地块所指向的连接点
-         *      }
-         *  }
-         */
-        for (Quad quad : room.getTopQuads())
-            clearAQuadConnectPoint(quad, Vector.UP);
-        for (Quad quad : room.getRightQuads())
-            clearAQuadConnectPoint(quad, Vector.RIGHT);
-        for (Quad quad : room.getBottomQuads())
-            clearAQuadConnectPoint(quad, Vector.DOWN);
-        for (Quad quad : room.getLeftQuads())
-            clearAQuadConnectPoint(quad, Vector.LEFT);
-    }
 
     /**
      * 清除一个地块的连接点
@@ -737,14 +700,14 @@ public class MapConnector {
          *  return false -> 默认是 false
          */
         if (step > 3) {
-            System.out.println("因超出三步错误");
+//            System.out.println("因超出三步错误");
             return false;
         }
 
         Point currentPoint = new Point(startPoint.x + direction.x * step, startPoint.y + direction.y * step);
 
         if (!_map.contains(currentPoint)) {
-            System.out.println("搜索连接点超出地图边界");
+//            System.out.println("搜索连接点超出地图边界");
             return false;
         }
 
@@ -752,7 +715,7 @@ public class MapConnector {
             if (_mainZoneQuads.contains(_map.getQuad(currentPoint.x, currentPoint.y)))
                 return true;
             else {
-                System.out.println("因不是连接点返回");
+//                System.out.println("因不是连接点返回");
                 return false;
             }
         }
@@ -762,61 +725,8 @@ public class MapConnector {
             return true;
         }
 
-        System.out.println("在最后判断错误");
+//        System.out.println("在最后判断错误");
         return false;
-    }
-
-    /**
-     * 获取地块所属的迷宫
-     * 
-     * @param quad
-     * @return 地块所属的迷宫，如果地块不属于任何迷宫则返回 null
-     */
-    private Maze getMaze(Quad quad) {
-        for (Maze maze : _mazes)
-            if (maze.contains(quad))
-                return maze;
-        return null;
-    }
-
-    /**
-     * 将迷宫加入主区域
-     * 
-     * @param startPoint
-     * @param maze
-     */
-    private void connectAMaze(Point startPoint, Maze maze) {
-        /*
-         *  将这个迷宫所有的地块加入到主区域
-         *  清理这个迷宫所有相邻连接点
-         */
-        addMazeQuadsToMainZone(maze);
-        clearAMazeConnectPoints(maze);
-    }
-
-    /**
-     * 将一个迷宫所有地块加入主区域
-     * 
-     * @param maze
-     */
-    private void addMazeQuadsToMainZone(Maze maze) {
-        _mainZoneQuads.addAll(Arrays.asList(maze.getQuads()));
-    }
-
-    /**
-     * 清理一个迷宫的连接点
-     * 
-     * @param maze
-     */
-    private void clearAMazeConnectPoints(Maze maze) {
-        /*
-         *  遍历迷宫所有地块
-         *  {
-         *      清理当前地块的连接点
-         *  }
-         */
-        for (Quad quad : maze.getQuads())
-            clearAQuadConnectPoint(quad);
     }
 
     /**

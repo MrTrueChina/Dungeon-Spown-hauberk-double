@@ -143,7 +143,7 @@ public class MapConnector {
 
         for (int y = 0; y < _map.height; y++) {
             for (int x = 0; x < _map.width; x++) {
-                string.append(isConnectPoint(x, y) ? "大" : (_map.getType(x, y) == QuadType.WALL) ? "墙" : "一");
+                string.append(getQuadString(_map.getQuad(x, y)));
             }
             string.append("\n");
         }
@@ -151,6 +151,33 @@ public class MapConnector {
         System.out.println("↓生成点↓");
         System.out.println(string.toString());
         System.out.println("↑生成点↑");
+    }
+
+    private String getQuadString(Quad quad) {
+        /*
+         *  生成点应该只在墙上生成
+         *  主区域应该全部是空地
+         */
+
+        if (isConnectPoint(quad))
+            if (quad.getType() == QuadType.WALL)
+                return "生"; // 生成点、是墙，说明正确，用“生”表示
+            else
+                return "聲"; // 生成点，不是墙，说明生成点生成错误
+
+        if (quad.getType() == QuadType.WALL)
+            if(!_mainZoneQuads.contains(quad))
+                return "墙";
+            else
+                return "繦"; // 墙，是主区域，说明加入主区域步骤错误
+
+        if (quad.getType() == QuadType.FLOOR)
+            if (_mainZoneQuads.contains(quad))
+                return "十";
+            else
+                return "一";
+
+        return "错";
     }
     //TODO: 测试结果显示极有可能是判断是否移除连接点的方法出错了
     //1.房间连迷宫、墙为纵向、厚度为2、左主区域右非主区域：：靠近主区域的（左侧的）厚度1的墙被移除了连接点
@@ -161,6 +188,7 @@ public class MapConnector {
     //6.【疑似】房间与迷宫相连、墙为横向，厚度为1、上下都是主区域，检测区无法确认：：之前没有正确清理的连接点被正确清理了
     //7.房间连迷宫、墙为纵向、厚度为1、上下都是主区域、检测区（迷宫）在左侧：：墙的连接点没有移除
     //8.房间连迷宫、墙为横向、厚度为2、下主区域上非主区域：：靠近主区域的（下方的）厚度1的墙被移除了连接点
+    //9.房间连迷宫、墙为横向、厚度为2、上主区域下非主区域：：靠近主区域的（上方的）厚度1的墙被移除了连接点
 
     //房间连房间暂未发现错误
 

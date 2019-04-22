@@ -193,6 +193,29 @@ public class MapConnector {
     //房间连房间暂未发现错误
 
     //迷宫连房间暂未发现错误
+    
+    /*
+     *  可能的错误位置：
+墙墙墙墙墙墙墙墙墙墙墙墙墙墙墙墙
+墙一生十十十十墙十十十十生一墙墙
+墙一生十十十十十十十十十生一墙墙
+墙一生十十十十生十十十十生一墙墙
+墙一生十十十十生十十十十生一墙墙
+墙一墙生墙生墙墙十十十十生一墙墙
+墙一墙生墙一墙墙生生墙生墙一墙墙
+墙一一一墙生墙墙生生墙一一一墙墙
+墙一墙墙墙一一一一一生一墙一墙墙
+墙一一一生一一一一一生一墙一墙墙
+墙一墙一生一一一一一墙墙墙一墙墙
+墙一墙一生一一一一一生一墙一墙墙
+墙一墙墙墙一一一一一生一墙一墙墙
+墙一一一墙生生生生生墙一一一墙墙
+墙墙墙墙墙一一一一一墙墙墙墙墙墙
+墙墙墙墙墙墙墙墙墙墙墙墙墙墙墙墙
+     *  在上中部，两个生成点的三个方向都是主区域，此时如果上方的生成点向下移除生成点，将会导致走出三步也找不到主区域，达不到清除条件，生成点无法正常清除
+     *  房间清除生成点是从四面向外清理，因此不会发生这个错误，但迷宫清除生成点是随机选择方向，这就导致了清理错误
+     *  解决方式是在清除迷宫生成点时遍历所有主区域，并从主区域向所有方向发出清理
+     */
 
     private void setupConnector(Map map, ArrayList<Room> rooms, ArrayList<Maze> mazes, MapSpownData spownData) {
         _map = map;
@@ -618,8 +641,8 @@ public class MapConnector {
         addARoomQuadsToMainZone(room);
         clearARoomConnectPoints(room);
 
-        if (getRoome(_map.getQuad(startPoint.x, startPoint.y)) != null)
-            clearARoomConnectPoints(getRoome(_map.getQuad(startPoint.x, startPoint.y)));
+//        if (getRoome(_map.getQuad(startPoint.x, startPoint.y)) != null)
+//            clearARoomConnectPoints(getRoome(_map.getQuad(startPoint.x, startPoint.y)));
         //房间连房间的情况，新房间清理连接点会把老房间的一起清理掉，不用特别处理老房间。但留下这些有可能能够和开迷宫合并重用
     }
 

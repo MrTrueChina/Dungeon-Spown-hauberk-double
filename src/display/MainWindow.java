@@ -13,8 +13,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 
 import map.Map;
-import spown.MapSpownData;
-import spown.MapSpowner;
+import spown.spowner.MapSpownData;
+import spown.spowner.MapSpowner;
 
 public class MainWindow {
     private JLabel _imageLabel;

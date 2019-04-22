@@ -94,7 +94,7 @@ z*      遍历其他三个边
  *  }
  */
 
-package spown;
+package spown.spowner;
 
 import java.awt.Point;
 import java.util.ArrayList;

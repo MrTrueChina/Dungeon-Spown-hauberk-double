@@ -8,6 +8,7 @@ public class Maze {
     HashSet<Quad> _quads = new HashSet<Quad>();
 
     public boolean addQuad(Quad quad) {
+        System.out.println(_quads.size());
         return _quads.add(quad);
     }
     

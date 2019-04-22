@@ -22,4 +22,14 @@ public class Quad extends Point {
     public void setType(QuadType type) {
         _type = type;
     }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode() + _type.ordinal();
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj;
+    }
 }

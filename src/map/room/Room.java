@@ -34,6 +34,10 @@ public class Room extends Rectangle {
         return _quads;
     }
 
+    public Quad getQuad(int x,int y) {
+        return _quads[x][y];
+    }
+    
     /**
      * 以一维数组形式返回所有地块
      * 
@@ -104,6 +108,12 @@ public class Room extends Rectangle {
         return new Rectangle(x - 1, y - 1, width + 2, height + 2); // Rectangle 的相交判断似乎不包括长宽方向的边缘，因此+2
     }
 
+    /**
+     * 检测房间中是否包含指定地块
+     * 
+     * @param quad
+     * @return
+     */
     public boolean contains(Quad quad) {
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)

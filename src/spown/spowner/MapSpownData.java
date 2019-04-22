@@ -1,4 +1,4 @@
-package spown;
+package spown.spowner;
 
 public class MapSpownData {
     public int mapWidth = 100;

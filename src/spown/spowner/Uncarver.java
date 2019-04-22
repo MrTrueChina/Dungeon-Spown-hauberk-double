@@ -1,4 +1,4 @@
-package spown;
+package spown.spowner;
 
 import java.awt.Point;
 

@@ -7,11 +7,12 @@ import map.Map;
 import map.quad.QuadType;
 import map.room.Room;
 import random.Random;
+import spown.zones.RoomZone;
 
 public class RoomsSpowner {
-    private MapSpownData _spownData;
     private Map _map;
-    private ArrayList<Room> _rooms = new ArrayList<Room>();
+    private MapSpownData _spownData;
+    private ArrayList<RoomZone> _rooms;
 
     /**
      * 在地图中生成房间
@@ -20,7 +21,7 @@ public class RoomsSpowner {
      * @param spownData
      * @return
      */
-    public ArrayList<Room> spownRooms(Map map, MapSpownData spownData) {
+    public ArrayList<RoomZone> spownRooms(Map map, MapSpownData spownData) {
         try {
             setupSpowner(map, spownData);
 
@@ -35,11 +36,13 @@ public class RoomsSpowner {
     private void setupSpowner(Map map, MapSpownData spownData) {
         _map = map;
         _spownData = spownData;
+        _rooms = new ArrayList<RoomZone>();
     }
 
     private void clearSpowner() {
         _map = null;
         _spownData = null;
+        _rooms = null;
     }
 
     private void doSpown() {
@@ -50,15 +53,14 @@ public class RoomsSpowner {
          *      
          *      if (房间能放置)
          *      {
-         *          把这个房间放置到地图里
+         *          按这个范围在地图里放置房间
          *      }
          *  }
          */
         for (int i = 0; i < _spownData.spownRoomTime; i++) {
             Rectangle roomBound = gerRandomRoomBound();
-            if (roomCanPut(roomBound)) {
-                putRoom(new Room(roomBound, _map));
-            }
+            if (roomCanPut(roomBound))
+                putRoom(roomBound);
         }
     }
 
@@ -72,16 +74,26 @@ public class RoomsSpowner {
     }
 
     private boolean roomCanPut(Rectangle roomBound) {
-        for (Room oldRoom : _rooms) {
-            if (oldRoom.getExpandedRectangle().intersects(roomBound))
+        for (RoomZone oldRoom : _rooms)
+            if (!oldRoom.nonadjacent(roomBound))
                 return false;
-        }
+
         return true;
     }
 
-    private void putRoom(Room room) {
-        _rooms.add(room);
+    private void putRoom(Rectangle roomBound) {
+        Room room = new Room(roomBound, _map);
+        RoomZone roomZone = new RoomZone(room, getRandomDoorsNumber());
 
+        putRoomToMap(room);
+        _rooms.add(roomZone);
+    }
+
+    private int getRandomDoorsNumber() {
+        return Random.weightedRandom(_spownData.roomDoorsProbability) + 1;
+    }
+
+    private void putRoomToMap(Room room) {
         for (int y = 0; y < room.height; y++)
             for (int x = 0; x < room.width; x++)
                 _map.setType(x + room.x, y + room.y, QuadType.FLOOR);

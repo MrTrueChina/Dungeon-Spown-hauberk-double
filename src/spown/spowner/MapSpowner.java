@@ -12,7 +12,7 @@ import spown.zones.RoomZone;
 public class MapSpowner {
     private MapSpownData _spownData;
     private Map _map;
-    private ArrayList<Room> _rooms;
+    private ArrayList<RoomZone> _rooms;
     private ArrayList<Maze> _mazes;
 
     public Map map() {
@@ -32,17 +32,13 @@ public class MapSpowner {
 
         /////////////////////////////////////
         
-        ArrayList<RoomZone> roomZones = new ArrayList<RoomZone>();
-        for (Room room : _rooms) 
-            roomZones.add(new RoomZone(room));
-        
         ArrayList<MazeZone> mazeZones = new ArrayList<MazeZone>();
         for (Maze maze : _mazes)
             mazeZones.add(new MazeZone(maze));
         
         /////////////////////////////////////
         
-        new MapConnector().ConnectRoomsAndMaze(_map, roomZones, mazeZones, _spownData);
+        new MapConnector().ConnectRoomsAndMaze(_map, _rooms, mazeZones, _spownData);
         
         new Uncarver().uncarve(_map);
 

@@ -113,7 +113,6 @@ import vector.Vector;
 public class MapConnector {
     private Map _map;
     private ArrayList<RoomZone> _rooms;
-    private ArrayList<MazeZone> _mazes;
     private ArrayList<Zone> _zones;
     private MapSpownData _spownData;
     private HashSet<Quad> _mainZoneQuads; // 利用 HashSet 的无序性来进行随机查找与主区域相邻的连接点
@@ -220,29 +219,34 @@ public class MapConnector {
     private void setupConnector(Map map, ArrayList<RoomZone> rooms, ArrayList<MazeZone> mazes, MapSpownData spownData) {
         _map = map;
         _rooms = rooms;
-        _mazes = mazes;
+        setupZones(rooms, mazes);
         _spownData = spownData;
         _mainZoneQuads = new HashSet<Quad>();
-        _connectPoints = new boolean[_map.width][_map.height];
-
-        for (int y = 0; y < _map.height; y++)
-            for (int x = 0; x < _map.width; x++)
-                removeConnectPoint(x, y);
-
+        setupConnects(map);
+    }
+    
+    private void setupZones(ArrayList<RoomZone> rooms,ArrayList<MazeZone> mazes) {
         _zones = new ArrayList<Zone>();
-        _zones.addAll(_rooms);
-        _zones.addAll(_mazes);
-        System.out.println("总区域数 = " + _zones.size());
+        _zones.addAll(rooms);
+        _zones.addAll(mazes);
+//        System.out.println("总区域数 = " + _zones.size());
+    }
+    
+    private void setupConnects(Map map) {
+        _connectPoints = new boolean[map.width][map.height];
+
+        for (int y = 0; y < map.height; y++)
+            for (int x = 0; x < map.width; x++)
+                removeConnectPoint(x, y);
     }
 
     private void clearConnector() {
         _map = null;
         _rooms = null;
-        _spownData = null;
-        _connectPoints = null;
-        _mainZoneQuads = null;
-
         _zones = null;
+        _spownData = null;
+        _mainZoneQuads = null;
+        _connectPoints = null;
     }
 
     /**
@@ -740,5 +744,4 @@ public class MapConnector {
         clearAQuadConnectPoint(quad, Vector.DOWN);
         clearAQuadConnectPoint(quad, Vector.LEFT);
     }
-
 }

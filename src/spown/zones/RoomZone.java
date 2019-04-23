@@ -6,11 +6,13 @@ import map.room.Room;
 
 public class RoomZone implements Zone {
     private Room _room;
+    private int _doorsNumber;
 
-    public RoomZone(Room room) {
-        if (room != null)
+    public RoomZone(Room room, int doorsNumber) {
+        if (room != null) {
             _room = room;
-        else
+            _doorsNumber = doorsNumber > 0 ? doorsNumber : 1;
+        } else
             throw new NullPointerException("房间不能为null");
     }
 
@@ -18,15 +20,24 @@ public class RoomZone implements Zone {
         return _room;
     }
 
-    /**
-     * 判断房间是否包含指定地块
-     * 
-     * @param quad
-     * @return
-     */
-    @Override
-    public boolean contains(Quad quad) {
-        return _room.contains(quad);
+    public int x() {
+        return _room.x;
+    }
+
+    public int y() {
+        return _room.y;
+    }
+
+    public int width() {
+        return _room.width;
+    }
+
+    public int height() {
+        return _room.height;
+    }
+
+    public int doorsNumber() {
+        return _doorsNumber;
     }
 
     /**
@@ -99,6 +110,17 @@ public class RoomZone implements Zone {
      */
     public boolean nonadjacent(Rectangle rectangle) {
         return !(new Rectangle(_room.x - 1, _room.y - 1, _room.width + 2, _room.height + 2).intersects(rectangle));
+    }
+
+    /**
+     * 判断房间是否包含指定地块
+     * 
+     * @param quad
+     * @return
+     */
+    @Override
+    public boolean contains(Quad quad) {
+        return _room.contains(quad);
     }
 
 }

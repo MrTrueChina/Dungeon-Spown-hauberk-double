@@ -25,6 +25,7 @@ class RoomZoneTest {
     private final int ROOM_Y = 2;
     private final int ROOM_WIDTH = 8;
     private final int ROOM_HEIGHT = 6;
+    private final int DOORS_NUMBER = 1;
 
     Map _map;
     Room _room;
@@ -42,7 +43,7 @@ class RoomZoneTest {
     void setUp() throws Exception {
         _map = new Map(MAP_WIDTH, MAP_HEIGHT);
         _room = new Room(ROOM_X, ROOM_Y, ROOM_WIDTH, ROOM_HEIGHT, _map);
-        _roomZone = new RoomZone(_room);
+        _roomZone = new RoomZone(_room, DOORS_NUMBER);
     }
 
     @AfterEach
@@ -60,12 +61,24 @@ class RoomZoneTest {
     @Test
     final void roomZone_Null() {
         try {
-            new RoomZone(null);
+            new RoomZone(null, 1);
             fail();
         } catch (NullPointerException e) {
         } catch (Exception e) {
             fail();
         }
+    }
+
+    @Test
+    final void roomZone_Zero() {
+        RoomZone room = new RoomZone(_room, 0);
+        assertEquals(1, room.doorsNumber());
+    }
+
+    @Test
+    final void roomZone_Negative() {
+        RoomZone room = new RoomZone(_room, -1);
+        assertEquals(1, room.doorsNumber());
     }
 
     @Test

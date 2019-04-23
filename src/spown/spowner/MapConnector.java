@@ -114,7 +114,6 @@ public class MapConnector {
     private Map _map;
     private ArrayList<RoomZone> _rooms;
     private ArrayList<Zone> _zones;
-    private MapSpownData _spownData;
     private HashSet<Quad> _mainZoneQuads; // 利用 HashSet 的无序性来进行随机查找与主区域相邻的连接点
     private boolean[][] _connectPoints;
 
@@ -220,18 +219,17 @@ public class MapConnector {
         _map = map;
         _rooms = rooms;
         setupZones(rooms, mazes);
-        _spownData = spownData;
         _mainZoneQuads = new HashSet<Quad>();
         setupConnects(map);
     }
-    
-    private void setupZones(ArrayList<RoomZone> rooms,ArrayList<MazeZone> mazes) {
+
+    private void setupZones(ArrayList<RoomZone> rooms, ArrayList<MazeZone> mazes) {
         _zones = new ArrayList<Zone>();
         _zones.addAll(rooms);
         _zones.addAll(mazes);
-//        System.out.println("总区域数 = " + _zones.size());
+        //        System.out.println("总区域数 = " + _zones.size());
     }
-    
+
     private void setupConnects(Map map) {
         _connectPoints = new boolean[map.width][map.height];
 
@@ -244,7 +242,6 @@ public class MapConnector {
         _map = null;
         _rooms = null;
         _zones = null;
-        _spownData = null;
         _mainZoneQuads = null;
         _connectPoints = null;
     }
@@ -432,7 +429,7 @@ public class MapConnector {
         connectStartRoom(); // 随机选一个房间，所有地块加入主区域表
 
         Point connectPoint = null;
-        while ((connectPoint = getRandomConnectPoint()) != null)
+        while ((connectPoint = getRandomConnectPointaAjacentMainZone()) != null)
             connectAConnectPoint(connectPoint);
     }
 
@@ -469,7 +466,7 @@ public class MapConnector {
      * 
      * @return
      */
-    private Point getRandomConnectPoint() {
+    private Point getRandomConnectPointaAjacentMainZone() {
         /*
          *  遍历所有主区域地块（利用 HashSet 的无序性实现随机）
          *  {
@@ -561,6 +558,24 @@ public class MapConnector {
     }
 
     /**
+     * 获取一个地块相邻的一个主区域地块
+     * 
+     * @param center
+     * @return
+     */
+    private Point getContiguousMainQuad(Point center) {
+        if (_mainZoneQuads.contains(_map.getQuad(center.x, center.y + 1)))
+            return _map.getQuad(center.x, center.y + 1);
+        if (_mainZoneQuads.contains(_map.getQuad(center.x + 1, center.y)))
+            return _map.getQuad(center.x + 1, center.y);
+        if (_mainZoneQuads.contains(_map.getQuad(center.x, center.y - 1)))
+            return _map.getQuad(center.x, center.y - 1);
+        if (_mainZoneQuads.contains(_map.getQuad(center.x - 1, center.y)))
+            return _map.getQuad(center.x - 1, center.y);
+        return null;
+    }
+
+    /**
      * 获取地块所属的区域
      * 
      * @param quad
@@ -619,24 +634,6 @@ public class MapConnector {
     }
 
     /**
-     * 获取一个地块相邻的一个主区域地块
-     * 
-     * @param center
-     * @return
-     */
-    private Point getContiguousMainQuad(Point center) {
-        if (_mainZoneQuads.contains(_map.getQuad(center.x, center.y + 1)))
-            return _map.getQuad(center.x, center.y + 1);
-        if (_mainZoneQuads.contains(_map.getQuad(center.x + 1, center.y)))
-            return _map.getQuad(center.x + 1, center.y);
-        if (_mainZoneQuads.contains(_map.getQuad(center.x, center.y - 1)))
-            return _map.getQuad(center.x, center.y - 1);
-        if (_mainZoneQuads.contains(_map.getQuad(center.x - 1, center.y)))
-            return _map.getQuad(center.x - 1, center.y);
-        return null;
-    }
-
-    /**
      * 把一个地块连接到主区域
      * 
      * @param quadPoint
@@ -651,7 +648,6 @@ public class MapConnector {
         _mainZoneQuads.add(_map.getQuad(quadPoint));
         removeConnectPoint(quadPoint);
     }
-
 
     /**
      * 清除一个地块的连接点
@@ -704,14 +700,14 @@ public class MapConnector {
          *  return false -> 默认是 false
          */
         if (step > 3) {
-//            System.out.println("因超出三步错误");
+            //            System.out.println("因超出三步错误");
             return false;
         }
 
         Point currentPoint = new Point(startPoint.x + direction.x * step, startPoint.y + direction.y * step);
 
         if (!_map.contains(currentPoint)) {
-//            System.out.println("搜索连接点超出地图边界");
+            //            System.out.println("搜索连接点超出地图边界");
             return false;
         }
 
@@ -719,7 +715,7 @@ public class MapConnector {
             if (_mainZoneQuads.contains(_map.getQuad(currentPoint.x, currentPoint.y)))
                 return true;
             else {
-//                System.out.println("因不是连接点返回");
+                //                System.out.println("因不是连接点返回");
                 return false;
             }
         }
@@ -729,12 +725,12 @@ public class MapConnector {
             return true;
         }
 
-//        System.out.println("在最后判断错误");
+        //        System.out.println("在最后判断错误");
         return false;
     }
 
     /**
-     * 清除一个地块四周的生成点
+     * 清除一个地块四周的连接点
      * 
      * @param quad
      */

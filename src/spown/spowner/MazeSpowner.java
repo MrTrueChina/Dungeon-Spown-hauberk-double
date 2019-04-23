@@ -9,12 +9,13 @@ import java.util.List;
 import map.Map;
 import map.maze.Maze;
 import map.quad.QuadType;
+import spown.zones.MazeZone;
 
 public class MazeSpowner {
     private LinkedList<Point> _readyNodes; // 开表，用于存储准备雕刻的节点
     private ArrayList<Point> _carvedNodes; // 闭表，用于存储雕刻完毕的节点
     private Map _map;
-    private ArrayList<Maze> _mazes;
+    private ArrayList<MazeZone> _mazes;
 
     /**
      * 在传入的地图上填充迷宫
@@ -22,7 +23,7 @@ public class MazeSpowner {
      * @param map
      * @return
      */
-    public ArrayList<Maze> fillMaze(final Map map) {
+    public ArrayList<MazeZone> fillMaze(final Map map) {
         try {
             setupSpowner(map);
             doSpown();
@@ -36,7 +37,7 @@ public class MazeSpowner {
         _map = map;
         _readyNodes = new LinkedList<Point>();
         _carvedNodes = new ArrayList<Point>();
-        _mazes = new ArrayList<Maze>();
+        _mazes = new ArrayList<MazeZone>();
     }
 
     private void cleanSpowner() {
@@ -54,7 +55,7 @@ public class MazeSpowner {
          * 4.直到找不到可以作为左上角的点为止，填充结束
          */
         while (getLeftTopNode() != null) { // 如果能成功雕刻起点就说明还有填充的空间，如果雕刻起点失败则说明已经没有空间填充迷宫了，循环也就可以结束了
-            _mazes.add(new Maze());
+            _mazes.add(new MazeZone(new Maze()));
             carveStartNode();
             while (_readyNodes.size() > 0) {
                 //long startCarveRandomNodeTime = System.currentTimeMillis();

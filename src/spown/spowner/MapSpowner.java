@@ -13,7 +13,7 @@ public class MapSpowner {
     private MapSpownData _spownData;
     private Map _map;
     private ArrayList<RoomZone> _rooms;
-    private ArrayList<Maze> _mazes;
+    private ArrayList<MazeZone> _mazes;
 
     public Map map() {
         return _map;
@@ -29,16 +29,8 @@ public class MapSpowner {
 
         _mazes = new MazeSpowner().fillMaze(_map);
         System.out.println("生成了 " + _mazes.size() + " 个迷宫");
-
-        /////////////////////////////////////
         
-        ArrayList<MazeZone> mazeZones = new ArrayList<MazeZone>();
-        for (Maze maze : _mazes)
-            mazeZones.add(new MazeZone(maze));
-        
-        /////////////////////////////////////
-        
-        new MapConnector().ConnectRoomsAndMaze(_map, _rooms, mazeZones, _spownData);
+        new MapConnector().ConnectRoomsAndMaze(_map, _rooms, _mazes, _spownData);
         
         new Uncarver().uncarve(_map);
 

@@ -3,9 +3,7 @@ package spown.spowner;
 import java.util.ArrayList;
 
 import map.Map;
-import map.maze.Maze;
 import map.quad.QuadType;
-import map.room.Room;
 import spown.zones.MazeZone;
 import spown.zones.RoomZone;
 
@@ -29,9 +27,9 @@ public class MapSpowner {
 
         _mazes = new MazeSpowner().fillMaze(_map);
         System.out.println("生成了 " + _mazes.size() + " 个迷宫");
-        
+
         new MapConnector().ConnectRoomsAndMaze(_map, _rooms, _mazes, _spownData);
-        
+
         new Uncarver().uncarve(_map);
 
         return _map;

@@ -6,9 +6,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,14 +28,6 @@ class RoomZoneTest {
     Map _map;
     Room _room;
     RoomZone _roomZone;
-
-    @BeforeAll
-    static void setUpBeforeClass() throws Exception {
-    }
-
-    @AfterAll
-    static void tearDownAfterClass() throws Exception {
-    }
 
     @BeforeEach
     void setUp() throws Exception {
@@ -150,6 +140,20 @@ class RoomZoneTest {
         ArrayList<Quad> zoneLeftQuads = new ArrayList<Quad>(Arrays.asList(_roomZone.getLeftQuads()));
 
         Assertions.assertArrayListEquals(roomLeftQuads, zoneLeftQuads);
+    }
+
+    @Test
+    final void getMarginalQuads_Normal() {
+        ArrayList<Quad> marginalQuads = new ArrayList<Quad>();
+        marginalQuads.addAll(Arrays.asList(_room.getQuads()[0])); // 左侧一行
+        marginalQuads.addAll(Arrays.asList(_room.getQuads()[_room.width - 1])); // 右侧一行
+        for (int x = 1; x < _room.width - 1; x++)
+            marginalQuads.add(_room.getQuad(x, 0)); // 底下一行去掉两角
+        for (int x = 1; x < _room.width - 1; x++)
+            marginalQuads.add(_room.getQuad(x, _room.height - 1)); // 顶部一行去掉两角
+
+        Assertions.assertArrayListEquals(marginalQuads,
+                new ArrayList<Quad>(Arrays.asList(_roomZone.getMarginalQuads())));
     }
 
     @Test

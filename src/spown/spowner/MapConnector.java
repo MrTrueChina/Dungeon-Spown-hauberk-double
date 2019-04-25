@@ -111,6 +111,11 @@ import spown.zones.Zone;
 import vector.Vector;
 
 public class MapConnector {
+    /**
+     * 检测连接点的最大长度，算法中墙的最大厚度是2，最大检测长度设置为最大厚度+1，便于查找连接点连接到哪里
+     */
+    private final static int MAX_CHECK_CONNECT_POINT_LENGTH = 3;
+
     private Map _map;
     private ArrayList<RoomZone> _rooms;
     private ArrayList<Zone> _zones;
@@ -494,7 +499,7 @@ public class MapConnector {
      * @param quad
      * @return
      */
-    private Point getContiguousConnectPoint(final Quad quad) {
+    private Vector getContiguousConnectPoint(final Quad quad) {
         /*
          *  遍历当前地块的上下左右四个Point
          *  {
@@ -505,13 +510,13 @@ public class MapConnector {
          *  没找到 return null
          */
         if (isConnectPoint(quad.x, quad.y + 1))
-            return new Point(quad.x, quad.y + 1);
+            return new Vector(quad.x, quad.y + 1);
         if (isConnectPoint(quad.x + 1, quad.y))
-            return new Point(quad.x + 1, quad.y);
+            return new Vector(quad.x + 1, quad.y);
         if (isConnectPoint(quad.x, quad.y - 1))
-            return new Point(quad.x, quad.y - 1);
+            return new Vector(quad.x, quad.y - 1);
         if (isConnectPoint(quad.x - 1, quad.y))
-            return new Point(quad.x - 1, quad.y);
+            return new Vector(quad.x - 1, quad.y);
         return null;
     }
 
@@ -602,10 +607,111 @@ public class MapConnector {
     private void connectAZone(Zone zone) {
         /*
          *  将这个区域所有地块加入主区域
+         *  
+         *  if (这是个房间)
+         *      开多个门
+         *  
          *  清理这个区域的连接点
          */
         addZoneQuadsToMainZone(zone);
+
+        if (zone instanceof RoomZone)
+            addDoorToRoom((RoomZone) zone);
+
         clearAZoneConnectPoints(zone);
+    }
+
+    /**
+     * 根据房间的生成信息给房间增加门
+     * 
+     * @param room
+     */
+    private void addDoorToRoom(RoomZone room) {
+        /*
+         *  以随机顺序遍历四个边的地块
+         *  {
+         *      if(门的数量达到了房间的门数量
+         *          return
+         *  
+         *      if(这个地块相邻的是连接点 && 连接点连接到主区域)
+         *      {
+         *          连接到主区域去()
+         *          门数量++
+         *      }
+         *  }
+         */
+        HashSet<Quad> marginalQuads = new HashSet<Quad>(Arrays.asList(room.getMarginalQuads()));
+        int doorsNumber = 1;
+
+        for (Quad quad : marginalQuads) {
+            if (doorsNumber >= room.doorsNumber())
+                return;
+
+            Vector connectPoint = getContiguousConnectPoint(quad);
+            if (connectPoint != null && isConnectToMainZone(quad, connectPoint)) {
+                connectLine(quad, connectPoint);
+                doorsNumber++;
+            }
+        }
+    }
+
+    /**
+     * 判断从指定地块指向指定方向能不能走到主区域
+     * 
+     * @param quad
+     * @param connectPoint
+     * @return
+     */
+    private boolean isConnectToMainZone(final Quad startQuad, final Vector connectPoint) {
+        /*
+         *  for(小于最大长度)
+         *  {
+         *      if(这个位置不是生成点)
+         *      {
+         *          return 这个位置是不是主区域
+         *      }
+         *  }
+         */
+        Vector startVector = new Vector(startQuad);
+        Vector direction = startVector.directionTo(connectPoint);
+
+        for (int step = 1; step < MAX_CHECK_CONNECT_POINT_LENGTH; step++) {
+            Vector currentPosition = startVector.add(direction.multiply(step));
+            if (!isConnectPoint(currentPosition))
+                return isMainZone(_map.getQuad(currentPosition));
+        }
+        return false;
+    }
+
+    private boolean isMainZone(Quad quad) {
+        return _mainZoneQuads.contains(quad);
+    }
+
+    /**
+     * 从指定地块向连接点方向开道，直到连接到不是墙的地块
+     * 
+     * @param startQuad
+     * @param connectPoint
+     */
+    private void connectLine(Quad startQuad, Point connectPoint) {
+        /*
+         *  for(步数)
+         *  {
+         *      if(这一步位置是墙)
+         *          连接这个地块进主区域
+         *      else
+         *          return
+         *  }
+         */
+        Vector startPosition = new Vector(startQuad);
+        Vector direction = startPosition.directionTo(new Vector(connectPoint));
+        for (int step = 1;; step++) {
+            Vector currentPosition = startPosition.add(direction.multiply(step));
+            if (_map.getType(currentPosition) == QuadType.WALL)
+                connectAQuad(currentPosition);
+            else
+                return;
+        }
     }
 
     /**

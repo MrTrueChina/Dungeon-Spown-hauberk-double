@@ -1,6 +1,9 @@
 package spown.zones;
 
 import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import map.quad.Quad;
 import map.room.Room;
 
@@ -18,22 +21,6 @@ public class RoomZone implements Zone {
 
     public Room room() {
         return _room;
-    }
-
-    public int x() {
-        return _room.x;
-    }
-
-    public int y() {
-        return _room.y;
-    }
-
-    public int width() {
-        return _room.width;
-    }
-
-    public int height() {
-        return _room.height;
     }
 
     public int doorsNumber() {
@@ -100,6 +87,24 @@ public class RoomZone implements Zone {
      */
     public Quad[] getLeftQuads() {
         return _room.getQuads()[0];
+    }
+
+    /**
+     * 获取房间边缘地块
+     * 
+     * @return
+     */
+    public Quad[] getMarginalQuads() {
+        ArrayList<Quad> marginalQuads = new ArrayList<Quad>();
+
+        for (int x = 1; x < _room.width - 1; x++)
+            marginalQuads.add(_room.getQuad(x, _room.height - 1));
+        marginalQuads.addAll(Arrays.asList(_room.getQuads()[_room.width - 1]));
+        for (int x = 1; x < _room.width - 1; x++)
+            marginalQuads.add(_room.getQuad(x, 0));
+        marginalQuads.addAll(Arrays.asList(_room.getQuads()[0]));
+
+        return marginalQuads.toArray(new Quad[0]);
     }
 
     /**

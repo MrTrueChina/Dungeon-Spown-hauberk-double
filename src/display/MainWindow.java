@@ -73,14 +73,14 @@ public class MainWindow {
     private void displayDefaultMap() {
         MapSpownData spownData = new MapSpownData();
 
-        spownData.mapWidth = 128;
-        spownData.mapHeight = 128;
+        spownData.mapWidth = 64;
+        spownData.mapHeight = 64;
         spownData.minRoomWidth = 6;
         spownData.minRoomHeight = 6;
-        spownData.maxRoomWidth = 16;
-        spownData.maxRoomHeight = 16;
-        spownData.spownRoomTime = 2000;
-        spownData.roomDoorsProbability = new int[] { 2, 5 };
+        spownData.maxRoomWidth = 12;
+        spownData.maxRoomHeight = 12;
+        spownData.spownRoomTime = 200;
+        spownData.roomDoorsProbability = new int[] { 10, 7 };
 
         Map map = new MapSpowner().spown(spownData);
         Image scaledMazeImage;

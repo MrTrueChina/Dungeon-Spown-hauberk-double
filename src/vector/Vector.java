@@ -22,23 +22,23 @@ public class Vector extends Point {
     }
 
     /**
-     * 返回一个新的 Vector，它是此 Vector 和指定 Vector 相加的结果
+     * 返回一个新的 Vector，它是此 Vector 和指定 Point 相加的结果
      * 
-     * @param vector
+     * @param point
      * @return
      */
-    public Vector add(Vector vector) {
-        return new Vector(x + vector.x, y + vector.y);
+    public Vector add(Point point) {
+        return new Vector(x + point.x, y + point.y);
     }
 
     /**
-     * 返回一个新的 Vector，它是此 Vector 和指定 Vector 相减的结果
+     * 返回一个新的 Vector，它是此 Vector 和指定 Point 相减的结果
      * 
-     * @param vector
+     * @param point
      * @return
      */
-    public Vector subtract(Vector vector) {
-        return new Vector(x - vector.x, y - vector.y);
+    public Vector subtract(Point point) {
+        return new Vector(x - point.x, y - point.y);
     }
 
     /**
@@ -59,5 +59,26 @@ public class Vector extends Point {
      */
     public Vector directionTo(Vector target) {
         return target.subtract(this);
+    }
+
+    /**
+     * 返回一个新的 Vector，它是此 Vector 到 指定 Point 的方向
+     * 
+     * @param target
+     * @return
+     */
+    public Vector directionTo(Point point) {
+        return directionTo(new Vector(point));
+    }
+
+    /**
+     * 获取从起点 Point 到终点 Point 的方向
+     * 
+     * @param start
+     * @param target
+     * @return
+     */
+    public static Vector getDirection(Point start,Point target) {
+        return new Vector(target.x-start.x,target.y-start.y);
     }
 }

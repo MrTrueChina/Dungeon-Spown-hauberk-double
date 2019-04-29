@@ -1,99 +1,3 @@
-/**
- * 房间和迷宫的连接
- * 
- * 每个房间都需要能走通
- * 
- * 0.迷宫不保证连续
- *  1.
- * 1.房间可能被房间包围导致无法连接迷宫
- * 2.所有房间连接到迷宫或已经连接到迷宫的房间
- * 
- * 1.寻找一个房间作为起点，房间里的所有地块加入已经连接表，开门
- * 2.
- * 3.
- * 
- * 迷宫不可能紧靠，否则生成时就会生成过去。如果迷宫分为多个部分则必然是被房间分隔，因此所有可以开门的位置只有房间与房间和房间到迷宫。也就是说所有开门位置都可以以房间为起点进行搜索
- * 生成时在连接房间和迷宫时没有连接到的位置相当于不可见，这使得必须要有某种提示信息存在，否则只能进行高成本的遍历
- * 可以在房间外围制造连接点，但问题是有的房间距离迷宫和其他房间有厚度为2的墙，这使得连接点具有方向
- * 更大的问题是两个房间之间的连接点也有方向性，此时连接点如何表现出两个方向性？
- * 或者连接点没有方向性而是在打通的时候有方向性？
- * 
- * 连接点是由房间的四条边向外直线延伸，直到找到空地。因此和连接点相邻的地块必然在房间的正上下或正左右方向，不会有斜着的情况。
- * 
- * 
- * 连接连接前很可能需要把所有房间、迷宫都保存起来，之后要有一个合并方法，把连接起来的房间和迷宫合并到一个叫“主区域”的表里。
- * 
- * a.判断一个连接点是不是可以移除的方法应该是（一个连接点上下左右四个方向，长度最大为2，除了连接点外最近的地块，是不是墙或主区域。如果不是墙也不是主区域，则说明这个连接点能连接到没连接到的位置。）
- * 
- * b.移除连接点的第二种思路：以房间为单位移除连接点。因为迷宫之间不可能有连接点，那么所有连接点肯定都能从房间为起点找到（可以直接设计为连接点从房间向外生成）
-z*   既然连接点都可以通过房间找到，那就方便多了：
-z*   在连接一个房间之后，遍历这个房间的所有连接点，从房间内向外走，看最近的空地是不是主区域的空地，是的话就说明走过的所有连接点都没用了，不是的话说明连接点指向没有连接的区域
- *   
- *   
-z* 连接点部分：
- * 
-z*  遍历房间
- *  {
-z*      遍历房间上边
- *      {
-z*          遍历每个地块
- *          {
-z*              递归或循环向上查找地块 (找3格)
- *              {
- *                  if (到达了地图边缘)
- *                      return
- *              
- *                  if (找到一个是空地的地块) 【此处有扩展性问题】假设有个房间是内凹的，房间将可能自己和自己创建连接点，可以通过判断是不是房间自己的方块来解决
- *                  {
-z*                      一路上所有墙创建连接点
- *                      return
- *                  }
- *              }
- *          }
- *      }
- *      
-z*      遍历其他三边，类似于左边的处理
- *  }
- *  
- *  
-z*  连接部分：
- *  
-z*  随机选一个房间，所有地块加入主区域表
- *  
- *  while(还有连接点)
- *  {
- *      List 相邻的连接点 = 遍历主区域地块，获取所有和主区域相邻的连接点
- *      
-z*      从相邻的连接点里随机一个连接点
-z*      在这个连接点上下左右四个方向里找到主区域的地块 -> 这个地块到连接点的方向就是相邻区域的方向
-z*      沿着这个方向找到下一个空地
-z*      把中间这段墙打通
-z*      把下一个区域所有方块加入到主区域
- *      
- *      if(主区域方向的地块属于某个房间)
-z*          移除房间连接点(主区域房间)
- *      if(相邻区域的地块属于某个房间)
-z*          移除房间连接点(相邻区域房间)
- *  }
- *  
- *  void 移除房间连接点(Room 房间)
- *  {
-z*      遍历房间上边
- *      {
- *          if(地块的上边一格是连接点)
- *          {
-z*              向上找到下一个空地
- *              if(这个空地在主区域里)
- *              {
-z*                  移除经过的所有格子里的连接点
- *              }
- *          }
- *      }
- *      
-z*      遍历其他三个边
- *  }
- */
-
 package spown.spowner;
 
 import java.awt.Point;
@@ -112,9 +16,9 @@ import vector.Vector;
 
 public class MapConnector {
     /**
-     * 检测连接点的最大长度，算法中墙的最大厚度是2，最大检测长度设置为最大厚度+1，便于查找连接点连接到哪里
+     * 检测连接点的最大长度，算法中墙的最大厚度是2，为了查到墙对面是什么地块最远需要查3步，则边界就是4
      */
-    private final static int MAX_CHECK_CONNECT_POINT_LENGTH = 3;
+    private final static int CHECK_CONNECT_POINT_BOUNDARY = 4;
 
     private Map _map;
     private ArrayList<RoomZone> _rooms;
@@ -291,17 +195,64 @@ public class MapConnector {
     }
 
     /**
-     * 生成一个地块相邻的连接点
+     * 从指定地块开始，向指定方向生成连接点
      * 
      * @param startPosition
      * @param direction
      */
     private void spownAQuadConnectPoints(Point startPosition, Vector direction) {
+        /*
+         *  if(从起点向指定方向走能走到空地())
+         *      生成连接点到空地()
+         */
         //System.out.println("在 " + quadPosition + " 位置向 " + direction + " 方向生成连接点");
-
-        spownAQuadConnectPoints(startPosition, direction, 1); // 传 1 是因为 0 是房间边缘的地块，是空地，会直接结束生成
+        
+        if (canConnectToFloor(startPosition, direction))
+            spownALineConnectPoints(startPosition, direction);
 
         //printConnectPointsNumber();
+    }
+
+    //检测从指定位置向指定方向能不能连接到空地
+    private boolean canConnectToFloor(Point startPoint, Vector direction) {
+        //TODO:检测从指定位置向指定方向能不能连接到空地
+        /*
+         *  for(步数限制)
+         *      if(在地图里 && 这一步所在地块不是墙)
+         *          return true
+         *  return false
+         */
+        for (int step = 1; step < CHECK_CONNECT_POINT_BOUNDARY; step++) {
+            Point currentPosition = direction.multiply(step).add(startPoint);
+            
+            if (!_map.contains(currentPosition))
+                return false;
+            
+            if (_map.getType(currentPosition) != QuadType.WALL) // Point没有运算方法，所以用 Vector 的乘法先得到 Vector 之后用加法
+                return true;
+        }
+        return false;
+    }
+
+    //从指定位置向指定方向生成一行连接点
+    private void spownALineConnectPoints(Point startPoint, Vector direction) {
+        //TODO:从指定位置向指定方向生成一行连接点
+        /*
+         *  for(步数)
+         *  {
+         *      if(这一步所在的地块是墙)
+         *          生成连接点()
+         *      else
+         *          return
+         *  }
+         */
+        for (int step = 1;; step++) {
+            Point currentPosition = direction.multiply(step).add(startPoint);
+            if (_map.getType(currentPosition) == QuadType.WALL)
+                addConnectPoint(currentPosition);
+            else
+                return;
+        }
     }
 
     /** 用于测试连接点生成的测试输出
@@ -314,50 +265,6 @@ public class MapConnector {
         System.out.println("连接点数量 = " + num);
     }
     */
-
-    private boolean spownAQuadConnectPoints(Point startPosition, Vector direction, int step) {
-        /*
-         *  可以创建连接点为 true，不能创建连接点为 false
-         * 
-         *  if(步数 > 3) 第三步还没找到空地，说明此路不通
-         *      return false
-         *  
-         *  Point 当前点 = 根据起点、方向、步数计算当前点
-         *  if(超出地图)
-         *  {
-         *      return false
-         *  }
-         *  
-         *  if(当前点的地块是空地)
-         *  {
-         *      return true
-         *  }
-         *  
-         *  if(递归下一步 true)
-         *  {
-         *      在当前点创建连接点
-         *      return true
-         *  }
-         *  
-         *  return false
-         */
-        if (step > 3) // 根据算法，房间到最近的房间或迷宫的距离不会超过两个墙，那么当长度延伸到3的时候，要么已经遇到了空地，要么就没有走到正确的路线上
-            return false;
-
-        Point currentPoint = new Point(startPosition.x + direction.x * step, startPosition.y + direction.y * step);
-        if (!_map.contains(currentPoint))
-            return false;
-
-        if (_map.getType(currentPoint) == QuadType.FLOOR)
-            return true;
-
-        if (spownAQuadConnectPoints(startPosition, direction, step + 1)) /*如果下一步能遇到空地*/ {
-            addConnectPoint(currentPoint); // 则在这一个位置就应该是墙了，加入连接点
-            return true;
-        }
-
-        return false;
-    }
 
     /**
      * 添加连接点
@@ -555,8 +462,7 @@ public class MapConnector {
             if (_map.getType(currentQuad) != QuadType.FLOOR) {
                 connectAQuad(currentQuad);
             } else {
-                Zone zone = getZoneByQuad(currentQuad);
-                connectAZone(zone);
+                connectAZone(getZoneByQuad(currentQuad));
                 return;
             }
         }
@@ -647,7 +553,7 @@ public class MapConnector {
             if (doorsNumber >= room.doorsNumber())
                 return;
 
-            Vector connectPoint = getContiguousConnectPoint(quad);
+            Point connectPoint = getContiguousConnectPoint(quad);
             if (connectPoint != null && isConnectToMainZone(quad, connectPoint)) {
                 connectLine(quad, connectPoint);
                 doorsNumber++;
@@ -656,26 +562,37 @@ public class MapConnector {
     }
 
     /**
-     * 判断从指定地块指向指定方向能不能走到主区域
+     * 判断从指定地块向指定地块的方向能不能走到主区域
      * 
      * @param quad
      * @param connectPoint
      * @return
      */
-    private boolean isConnectToMainZone(final Quad startQuad, final Vector connectPoint) {
+    private boolean isConnectToMainZone(final Point startQuad, final Point connectPoint) {
+        return isConnectToMainZone(startQuad, Vector.getDirection(startQuad, connectPoint));
+    }
+
+    //TODO: 这个方法正常工作是有前提的，可能和生成点是否存在有关
+    /**
+     * 判断从指定地块向指定方向能不能走到主区域
+     * 
+     * @param quad
+     * @param connectPoint
+     * @return
+     */
+    private boolean isConnectToMainZone(final Point startQuad, final Vector direction) {
         /*
+         *  生成点没有通向地图边界的可能，判断超出地图没有意义
+         * 
          *  for(小于最大长度)
          *  {
-         *      if(这个位置不是生成点)
-         *      {
-         *          return 这个位置是不是主区域
-         *      }
+         *      if(这个位置不是生成点())
+         *          return 这个位置是不是主区域()
          *  }
          */
         Vector startVector = new Vector(startQuad);
-        Vector direction = startVector.directionTo(connectPoint);
 
-        for (int step = 1; step < MAX_CHECK_CONNECT_POINT_LENGTH; step++) {
+        for (int step = 1; step <= CHECK_CONNECT_POINT_BOUNDARY; step++) {
             Vector currentPosition = startVector.add(direction.multiply(step));
             if (!isConnectPoint(currentPosition))
                 return isMainZone(_map.getQuad(currentPosition));
@@ -693,7 +610,17 @@ public class MapConnector {
      * @param startQuad
      * @param connectPoint
      */
-    private void connectLine(Quad startQuad, Point connectPoint) {
+    private void connectLine(Point startQuad, Point connectPoint) {
+        connectLine(startQuad, Vector.getDirection(startQuad, connectPoint));
+    }
+
+    /**
+     * 从指定地块向指定方向开道，直到连接到不是墙的地块
+     * 
+     * @param startQuad
+     * @param connectPoint
+     */
+    private void connectLine(Point startQuad, Vector direction) {
         /*
          *  for(步数)
          *  {
@@ -704,8 +631,8 @@ public class MapConnector {
          *  }
          */
         Vector startPosition = new Vector(startQuad);
-        Vector direction = startPosition.directionTo(new Vector(connectPoint));
-        for (int step = 1;; step++) {
+
+        for (int step = 1;; step++) /*设计上第零步是空地，肯定不是生成点，所以要从 1 开始*/ {
             Vector currentPosition = startPosition.add(direction.multiply(step));
             if (_map.getType(currentPosition) == QuadType.WALL)
                 connectAQuad(currentPosition);
@@ -755,84 +682,39 @@ public class MapConnector {
         removeConnectPoint(quadPoint);
     }
 
-    /**
-     * 清除一个地块的连接点
-     * 
-     * @param startPoint
-     * @param direction 这个地块的连接点相对于地块的方向
-     */
-    private void clearAQuadConnectPoint(Point startPoint, Vector direction) {
-        clearConnectPoint(startPoint, direction, 1); // 从第一步开始，第零步是房间边缘的地块，肯定不是连接点
-        //printConnectPoints();
+    private void clearConnectPoint(final Point startPoint, final Vector direction) {
+        /*
+         *  if(从起点向指定方向连接到主区域())
+         *      清理从起点到指定方向的连接点（）
+         */
+        if (isConnectToMainZone(startPoint, direction))
+            clearLineConnectPoint(startPoint, direction);
     }
 
-    private boolean clearConnectPoint(final Point startPoint, final Vector direction, final int step) {
+    /**
+     * 从起点向指定方向清理一行连接点
+     *     
+     * @param startPoint
+     * @param direction
+     */
+    private void clearLineConnectPoint(Point startPoint, Vector direction) {
         /*
-         *  设计上如果方向正确连接点最少没有最多两个
-         *      0个：此路不通，应直接结束
-         *      1个：前进第二步后会到达不是墙的地块
-         *      2个：前进第三步后会到达不是墙的地块
-         *  得出结论：
-         *      1.最多走三步
-         *      2.遇到不是连接点的位置应该停止
-         *      3.停止的地方如果是墙，则说明此路不通，要么是连接点生成错了要么是找错了，为了安全不做清理
-         *      4.停止的地方如果是空地，并且这个空地属于主区域。说明这串连接点已经没用了，可以移除
+         *  for(步数)
+         *  {
+         *      if(这一步的位置是连接点)
+         *          移除连接点
+         *      else
+         *          return
+         *  }
          */
-        /*
-         *  以 true 作为可以移除，以 false 作为不可移除
-         * 
-         *  if (到达的位置不是连接点) -> 2.不是连接点的位置停止
-         *  {
-         *      if (到达的位置是墙)
-         *          此路不通 return false -> 3.停止的地方是墙，此路不通
-         *          
-         *      if (到达的位置是空地 && 这个空地是主区域的空地)
-         *          走对了 return true -> 4.停止的地方是空地，可以走通
-         *  }
-         *  
-         *  if (向下递归是 true)
-         *  {
-         *      移除自己这一格的连接点
-         *      return true
-         *  }
-         *  else
-         *  {
-         *      return false
-         *  }
-         * 
-         *  if (步数 > 3) -> 1.最多走三步
-         *      逻辑上发生严重错误 return false
-         *  
-         *  return false -> 默认是 false
-         */
-        if (step > 3) {
-            //            System.out.println("因超出三步错误");
-            return false;
+        Vector startVector = new Vector(startPoint);
+        for (int step = 1;; step++) {
+            Point currentPoint = startVector.add(direction.multiply(step));
+            if (isConnectPoint(currentPoint))
+                removeConnectPoint(currentPoint);
+            else
+                return;
         }
-
-        Point currentPoint = new Point(startPoint.x + direction.x * step, startPoint.y + direction.y * step);
-
-        if (!_map.contains(currentPoint)) {
-            //            System.out.println("搜索连接点超出地图边界");
-            return false;
-        }
-
-        if (!isConnectPoint(currentPoint)) {
-            if (_mainZoneQuads.contains(_map.getQuad(currentPoint.x, currentPoint.y)))
-                return true;
-            else {
-                //                System.out.println("因不是连接点返回");
-                return false;
-            }
-        }
-
-        if (clearConnectPoint(startPoint, direction, step + 1)) {
-            removeConnectPoint(currentPoint);
-            return true;
-        }
-
-        //        System.out.println("在最后判断错误");
-        return false;
     }
 
     /**
@@ -841,9 +723,9 @@ public class MapConnector {
      * @param quad
      */
     private void clearAQuadConnectPoint(Quad quad) {
-        clearAQuadConnectPoint(quad, Vector.UP);
-        clearAQuadConnectPoint(quad, Vector.RIGHT);
-        clearAQuadConnectPoint(quad, Vector.DOWN);
-        clearAQuadConnectPoint(quad, Vector.LEFT);
+        clearConnectPoint(quad, Vector.UP);
+        clearConnectPoint(quad, Vector.RIGHT);
+        clearConnectPoint(quad, Vector.DOWN);
+        clearConnectPoint(quad, Vector.LEFT);
     }
 }

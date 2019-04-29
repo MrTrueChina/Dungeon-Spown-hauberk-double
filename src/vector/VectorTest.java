@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
+//TODO:Vector的方法改参数了，增加了一个重载，测试也要改
 class VectorTest {
     final static int X = 7;
     final static int Y = 5;
@@ -98,5 +98,35 @@ class VectorTest {
     @Test
     final void equals_Null() {
         assertEquals(false, _vector.equals(null));
+    }
+
+    @Test
+    final void getDirection_Normal() {
+        Vector start = new Vector(0, 0);
+        Vector target = new Vector(1, 1);
+        Vector expected = new Vector(1, 1);
+        assertEquals(expected, Vector.getDirection(start, target));
+    }
+
+    @Test
+    final void getDirection_StartNuul() {
+        try {
+            Vector.getDirection(null, new Vector());
+            fail();
+        } catch (NullPointerException e) {
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @Test
+    final void getDirection_TargetNull() {
+        try {
+            Vector.getDirection(new Vector(), null);
+            fail();
+        } catch (NullPointerException e) {
+        } catch (Exception e) {
+            fail();
+        }
     }
 }

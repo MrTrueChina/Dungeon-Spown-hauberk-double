@@ -215,7 +215,6 @@ public class MapConnector {
 
     //检测从指定位置向指定方向能不能连接到空地
     private boolean canConnectToFloor(Point startPoint, Vector direction) {
-        //TODO:检测从指定位置向指定方向能不能连接到空地
         /*
          *  for(步数限制)
          *      if(在地图里 && 这一步所在地块不是墙)
@@ -236,7 +235,6 @@ public class MapConnector {
 
     //从指定位置向指定方向生成一行连接点
     private void spownALineConnectPoints(Point startPoint, Vector direction) {
-        //TODO:从指定位置向指定方向生成一行连接点
         /*
          *  for(步数)
          *  {
@@ -572,7 +570,6 @@ public class MapConnector {
         return isConnectToMainZone(startQuad, Vector.getDirection(startQuad, connectPoint));
     }
 
-    //TODO: 这个方法正常工作是有前提的，可能和生成点是否存在有关
     /**
      * 判断从指定地块向指定方向能不能走到主区域
      * 
